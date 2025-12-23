@@ -8,36 +8,76 @@
     <title>FairSplit v13</title>
     <link rel="manifest" href="manifest.json">
     <style>
-        :root { --primary: #5856d6; --bg: #f2f2f7; --card: #ffffff; --green: #34c759; --red: #ff3b30; --whatsapp: #25D366; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: #333; padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: max(40px, env(safe-area-inset-bottom)); }
+        :root { 
+            --primary: #5856d6; --bg: #f2f2f7; --card: #ffffff; 
+            --green: #34c759; --red: #ff3b30; --whatsapp: #25D366; 
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg); margin: 0; padding: 20px; color: #333;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(40px, env(safe-area-inset-bottom));
+        }
+
         h1 { margin: 0; font-size: 24px; }
         .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .backup-btn-header { background: none; border: none; font-size: 24px; cursor: pointer; padding: 0; color: var(--primary); }
+
         .app-container { display: flex; flex-direction: column; gap: 20px; max-width: 600px; margin: 0 auto; }
         @media (min-width: 768px) { .app-container { display: grid; grid-template-columns: 1fr 1fr; max-width: 1200px; align-items: start; } }
+
         .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         h2 { font-size: 16px; margin-top: 0; color: #666; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
+
         input, button, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; margin-bottom: 10px; }
         .row { display: flex; gap: 10px; } .input-group { width: 50%; }
         .input-label { font-size: 12px; font-weight: bold; color: #888; margin-bottom: 4px; display: block; }
-        button { background-color: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; } button:active { opacity: 0.8; }
-        button.danger { background-color: var(--red); } button.whatsapp { background-color: var(--whatsapp); margin-top: 10px; } button.small { width: auto; padding: 5px 10px; font-size: 12px; margin: 0; } button.ai-btn { background: linear-gradient(135deg, #8E44AD, #3498DB); color: white; border: none; margin-bottom: 15px;}
-        #importSection { display: none; background: #f0f8ff; padding: 10px; border-radius: 8px; border: 1px dashed #3498DB; margin-bottom: 15px; } #pasteArea { height: 100px; font-family: monospace; font-size: 12px; white-space: pre; }
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #eee; background: white; cursor: pointer; user-select: none; transition: all 0.2s; } .item-row.is-assigned { border: 2px solid var(--primary); background-color: #F5F5FF; }
-        .item-left { display: flex; flex-direction: column; width: 65%; pointer-events: none; } .item-assignee { font-size: 11px; color: #666; margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap; }
+
+        button { background-color: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:active { opacity: 0.8; }
+        button.danger { background-color: var(--red); }
+        button.whatsapp { background-color: var(--whatsapp); margin-top: 10px; }
+        button.small { width: auto; padding: 5px 10px; font-size: 12px; margin: 0; }
+        button.ai-btn { background: linear-gradient(135deg, #8E44AD, #3498DB); color: white; border: none; margin-bottom: 15px;}
+
+        #importSection { display: none; background: #f0f8ff; padding: 10px; border-radius: 8px; border: 1px dashed #3498DB; margin-bottom: 15px; }
+        #pasteArea { height: 100px; font-family: monospace; font-size: 12px; white-space: pre; }
+
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #eee; background: white; cursor: pointer; user-select: none; transition: all 0.2s; }
+        .item-row.is-assigned { border: 2px solid var(--primary); background-color: #F5F5FF; }
+        .item-left { display: flex; flex-direction: column; width: 65%; pointer-events: none; }
+        .item-assignee { font-size: 11px; color: #666; margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap; }
         .mini-avatar { width: 18px; height: 18px; border-radius: 50%; background: #eee; color: #333; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid white; }
-        #friendsList { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; } .friend-chip { background: #f8f8f8; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; font-size: 14px; display: flex; align-items: center; gap: 8px; } .delete-x { width: 16px; height: 16px; background: rgba(0,0,0,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; }
-        #inlineTabs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; } #inlineTabs::-webkit-scrollbar { display: none; }
-        .tab-chip { padding: 10px 20px; border-radius: 20px; background: #f0f0f0; color: #555; font-weight: 600; white-space: nowrap; cursor: pointer; border: 2px solid transparent; font-size: 14px; flex-shrink: 0; } .tab-chip.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(88, 86, 214, 0.3); transform: scale(1.05); }
-        .total-row { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; } .grand-total { font-size: 24px; color: var(--primary); text-align: right; margin-top: 10px; }
-        .split-card { border-bottom: 1px solid #eee; padding: 10px 0; } .split-header { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; } .split-details { font-size: 12px; color: #666; margin-top: 4px; line-height: 1.4; }
+
+        #friendsList { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .friend-chip { background: #f8f8f8; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .delete-x { width: 16px; height: 16px; background: rgba(0,0,0,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; }
+
+        #inlineTabs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 1px solid #eee; scrollbar-width: none; }
+        #inlineTabs::-webkit-scrollbar { display: none; }
+        .tab-chip { padding: 10px 20px; border-radius: 20px; background: #f0f0f0; color: #555; font-weight: 600; white-space: nowrap; cursor: pointer; border: 2px solid transparent; font-size: 14px; flex-shrink: 0; }
+        .tab-chip.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(88, 86, 214, 0.3); transform: scale(1.05); }
+
+        .total-row { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; }
+        .grand-total { font-size: 24px; color: var(--primary); text-align: right; margin-top: 10px; }
+        .split-card { border-bottom: 1px solid #eee; padding: 10px 0; }
+        .split-header { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; }
+        .split-details { font-size: 12px; color: #666; margin-top: 4px; line-height: 1.4; }
         .instruction-text { font-size: 13px; color: #666; text-align: center; margin-bottom: 15px; font-style: italic;}
+
+        /* MODAL */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; }
-        .modal { background: white; width: 85%; max-width: 350px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; } .modal h3 { margin-top: 0; color: #333; }
-        .backup-btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; } .b-btn { padding: 15px; border-radius: 8px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold; cursor: pointer; font-size: 14px; } .b-export { color: var(--primary); border-color: var(--primary); } .b-import { color: var(--green); border-color: var(--green); } .b-reset { color: var(--red); border-color: var(--red); }
+        .modal { background: white; width: 85%; max-width: 350px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; }
+        .modal h3 { margin-top: 0; color: #333; }
+        .backup-btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .b-btn { padding: 15px; border-radius: 8px; border: 1px solid #ddd; background: #f9f9f9; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .b-export { color: var(--primary); border-color: var(--primary); }
+        .b-import { color: var(--green); border-color: var(--green); }
+        .b-reset { color: var(--red); border-color: var(--red); }
     </style>
 </head>
 <body>
+
     <div class="app-container">
         <div class="app-header">
             <h1>🧾 FairSplit</h1>
@@ -50,20 +90,42 @@
         <div class="col-left">
             <div class="card">
                 <h2>1. Add People <button class="small danger" onclick="clearFriends()">Reset</button></h2>
-                <div class="row"><input type="text" id="friendName" placeholder="Name (e.g. Ali)"><button onclick="addFriend()" style="width: auto;">Add</button></div>
+                <div class="row">
+                    <input type="text" id="friendName" placeholder="Name (e.g. Ali)">
+                    <button onclick="addFriend()" style="width: auto;">Add</button>
+                </div>
                 <div id="friendsList"></div> 
             </div>
+
             <div class="card">
                 <h2>Bill Settings</h2>
-                <div class="row"><div class="input-group"><label class="input-label">Tax %</label><input type="number" id="taxInput" value="6" onchange="refreshAll()"></div><div class="input-group"><label class="input-label">Service Charge %</label><input type="number" id="svcInput" value="10" onchange="refreshAll()"></div></div>
+                <div class="row">
+                    <div class="input-group">
+                        <label class="input-label">Tax %</label>
+                        <input type="number" id="taxInput" value="6" onchange="refreshAll()">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Service Charge %</label>
+                        <input type="number" id="svcInput" value="10" onchange="refreshAll()">
+                    </div>
+                </div>
             </div>
+
             <div class="card">
                 <h2>Add Items</h2>
                 <button class="ai-btn" onclick="startAIProcess()">✨ Scan Receipt with Gemini AI</button>
+                
                 <div id="importSection">
-                    <div style="font-size:12px; margin-bottom:5px; font-weight:bold; color:#555;">Paste Gemini text here:</div><textarea id="pasteArea" placeholder="Paste list here..."></textarea><button class="small" onclick="processPaste()">Import Items</button><button class="small danger" onclick="closeImport()">Cancel</button>
+                    <div style="font-size:12px; margin-bottom:5px; font-weight:bold; color:#555;">Paste Gemini text here:</div>
+                    <textarea id="pasteArea" placeholder="Paste list here..."></textarea>
+                    <button class="small" onclick="processPaste()">Import Items</button>
+                    <button class="small danger" onclick="closeImport()">Cancel</button>
                 </div>
-                <div class="row"><input type="text" id="itemName" placeholder="Item (e.g. Burger)"><input type="number" id="itemPrice" placeholder="Price (RM)" inputmode="decimal"></div>
+
+                <div class="row">
+                    <input type="text" id="itemName" placeholder="Item (e.g. Burger)">
+                    <input type="number" id="itemPrice" placeholder="Price (RM)" inputmode="decimal">
+                </div>
                 <button onclick="addItem()">+ Add Manually</button>
             </div>
         </div>
@@ -74,58 +136,232 @@
                 <div id="inlineTabs"></div>
                 <div id="instruction" class="instruction-text">Select a person above...</div>
                 <div id="billList"></div>
+                
                 <div style="margin-top: 20px; border-top: 2px solid #eee; padding-top: 10px;">
                     <div class="total-row"><span>Subtotal:</span> <span id="dispSub">0.00</span></div>
                     <div class="total-row" style="color:#666; font-size:14px;"><span>+ Tax & Svc:</span> <span id="dispTax">0.00</span></div>
                     <div class="grand-total">Total: RM <span id="dispTotal">0.00</span></div>
                 </div>
             </div>
+
             <div class="card">
                 <h2>Final Breakdown</h2>
                 <div id="finalSplitList"></div>
                 <button class="whatsapp" onclick="copyForWhatsApp()">📋 Copy for WhatsApp</button>
             </div>
+
             <button class="danger" onclick="newBill()">🗑 Start New Bill (Keep Friends)</button>
         </div>
     </div>
+
     <div class="modal-overlay" id="modalBackup">
         <div class="modal">
-            <h3>Backup & Restore</h3><div class="backup-btn-row"><button class="b-btn b-export" onclick="exportData()">📤 Save to Files</button><button class="b-btn b-import" onclick="importData()">📥 Load from Files</button><button class="b-btn b-reset" onclick="hardReset()">🗑 Erase All Data</button></div><button onclick="closeModal()" style="margin-top:20px; background:transparent; color:#666;">Close</button>
+            <h3>Backup & Restore</h3>
+            <div class="backup-btn-row">
+                <button class="b-btn b-export" onclick="exportData()">📤 Save to Files</button>
+                <button class="b-btn b-import" onclick="importData()">📥 Load from Files</button>
+                <button class="b-btn b-reset" onclick="hardReset()">🗑 Erase All Data</button>
+            </div>
+            <button onclick="closeModal()" style="margin-top:20px; background:transparent; color:#666;">Close</button>
         </div>
     </div>
     <input type="file" id="fileInput" style="display:none" onchange="handleFileSelect(this)">
+
     <script>
-        let items=JSON.parse(localStorage.getItem('fs_items'))||[],friends=JSON.parse(localStorage.getItem('fs_friends'))||[],activeFriend=null;
-        document.getElementById('taxInput').value=localStorage.getItem('fs_tax')||6;document.getElementById('svcInput').value=localStorage.getItem('fs_svc')||10;
-        renderFriends();refreshAll();
-        function refreshAll(){renderBill();calculateSplit();saveData();updateInstructionText();renderInlineTabs()}
-        function openBackupModal(){document.getElementById('modalBackup').style.display='flex'}
-        function closeModal(){document.getElementById('modalBackup').style.display='none'}
-        function exportData(){const d={items:items,friends:friends,tax:document.getElementById('taxInput').value,svc:document.getElementById('svcInput').value};const b=new Blob([JSON.stringify(d)],{type:"application/json"});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`FairSplit_Backup_${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a)}
-        function importData(){document.getElementById('fileInput').click()}
-        function handleFileSelect(i){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(d.items&&d.friends){items=d.items;friends=d.friends;document.getElementById('taxInput').value=d.tax||6;document.getElementById('svcInput').value=d.svc||10;saveData();refreshAll();closeModal();alert("Restored!")}else alert("Invalid file")}catch(x){alert("Error reading file")}};r.readAsText(f);i.value=''}
-        function hardReset(){if(confirm("Delete EVERYTHING?")){localStorage.clear();location.reload()}}
-        function setActiveFriend(n){activeFriend=(activeFriend===n)?null:n;refreshAll()}
-        function updateInstructionText(){const e=document.getElementById('instruction');if(activeFriend){e.innerHTML=`Assigning items to <b style="color:var(--primary)">${activeFriend}</b>...`;e.style.color="var(--primary)"}else{e.innerHTML="👇 Tap a name above to start assigning";e.style.color="#999"}}
-        function addItem(){const n=document.getElementById('itemName').value,p=parseFloat(document.getElementById('itemPrice').value);if(!n||isNaN(p)){alert("Enter item and price");return}items.push({id:Date.now(),name:n,price:p,assignedTo:[]});document.getElementById('itemName').value='';document.getElementById('itemPrice').value='';refreshAll()}
-        function toggleItemAssignment(i){if(!activeFriend){alert("Select a person first!");return}const t=items.find(x=>x.id===i);if(!t)return;if(t.assignedTo.includes(activeFriend))t.assignedTo=t.assignedTo.filter(f=>f!==activeFriend);else t.assignedTo.push(activeFriend);refreshAll()}
-        function deleteItem(i,e){e.stopPropagation();if(confirm("Delete item?")){items=items.filter(x=>x.id!==i);refreshAll()}}
-        function addFriend(){const n=document.getElementById('friendName').value.trim();if(n&&!friends.includes(n)){friends.push(n);document.getElementById('friendName').value='';setActiveFriend(n)}renderFriends()}
-        function removeFriend(n){if(confirm(`Remove ${n}?`)){friends=friends.filter(f=>f!==n);items.forEach(i=>i.assignedTo=i.assignedTo.filter(f=>f!==n));if(activeFriend===n)activeFriend=null;renderFriends();refreshAll()}}
-        function renderFriends(){document.getElementById('friendsList').innerHTML=friends.map(f=>`<div class="friend-chip"><span>${f}</span><span class="delete-x" onclick="removeFriend('${f}')">✕</span></div>`).join('')}
-        function renderInlineTabs(){const c=document.getElementById('inlineTabs');if(friends.length===0){c.style.display='none';return}c.style.display='flex';c.innerHTML=friends.map(f=>`<div class="tab-chip ${f===activeFriend?'active':''}" onclick="setActiveFriend('${f}')">${f}</div>`).join('')}
-        function renderBill(){const l=document.getElementById('billList');l.innerHTML='';items.forEach(i=>{const a=activeFriend&&i.assignedTo.includes(activeFriend),av=i.assignedTo.map(p=>`<div class="mini-avatar">${p.charAt(0)}</div>`).join('');const d=document.createElement('div');d.className=`item-row ${a?'is-assigned':''}`;d.onclick=()=>toggleItemAssignment(i.id);d.innerHTML=`<div class="item-left"><strong>${i.name}</strong><div class="item-assignee">${av.length?av:'<span style="color:#ccc;">No one</span>'}</div></div><div style="text-align:right;"><div style="font-weight:bold;">${formatMoney(i.price).replace('RM ','')}</div><button class="small danger" style="margin-top:5px; padding:2px 8px;" onclick="deleteItem(${i.id}, event)">X</button></div>`;l.appendChild(d)});calculateTotals()}
-        function calculateSplit(){const t=parseFloat(document.getElementById('taxInput').value)||0,s=parseFloat(document.getElementById('svcInput').value)||0,m=1+(t+s)/100;let d={};friends.forEach(f=>d[f]={total:0,items:[]});items.forEach(i=>{if(i.assignedTo.length>0){const c=(i.price/i.assignedTo.length)*m;i.assignedTo.forEach(p=>{if(d[p]){d[p].total+=c;d[p].items.push(i.name)}})}});const v=document.getElementById('finalSplitList');v.innerHTML='';let h=false;for(const[n,x]of Object.entries(d)){if(x.total>0){h=true;v.innerHTML+=`<div class="split-card"><div class="split-header"><span>${n}</span><span style="color:var(--primary)">${formatMoney(x.total)}</span></div><div class="split-details">${x.items.join(', ')}</div></div>`}}if(!h)v.innerHTML="<div style='color:#999; text-align:center; padding:10px;'>Add items...</div>"}
-        function calculateTotals(){const s=items.reduce((a,b)=>a+b.price,0),t=s*(parseFloat(document.getElementById('taxInput').value)||0)/100,v=s*(parseFloat(document.getElementById('svcInput').value)||0)/100;document.getElementById('dispSub').textContent=s.toFixed(2);document.getElementById('dispTax').textContent=(t+v).toFixed(2);document.getElementById('dispTotal').textContent=(s+t+v).toFixed(2)}
-        function formatMoney(n){return "RM "+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
-        function saveData(){localStorage.setItem('fs_items',JSON.stringify(items));localStorage.setItem('fs_friends',JSON.stringify(friends));localStorage.setItem('fs_tax',document.getElementById('taxInput').value);localStorage.setItem('fs_svc',document.getElementById('svcInput').value)}
-        function startAIProcess(){navigator.clipboard.writeText("Prompt here").then(()=>{alert("Copied! Paste in Gemini.");document.getElementById('importSection').style.display='block'})}
-        function closeImport(){document.getElementById('importSection').style.display='none'}
-        function processPaste(){const t=document.getElementById('pasteArea').value,r=/(.+?)\|([0-9,.]+)/g;let m;while((m=r.exec(t))!==null)items.push({id:Date.now()+Math.random(),name:m[1].trim(),price:parseFloat(m[2]),assignedTo:[]});refreshAll();closeImport()}
-        function copyForWhatsApp(){alert("Copied WhatsApp Summary!")}
-        function newBill(){if(confirm("Start new bill?")){items=[];refreshAll()}}
-        function clearFriends(){if(confirm("Remove all friends?")){friends=[];items.forEach(i=>i.assignedTo=[]);refreshAll()}}
+        let items = JSON.parse(localStorage.getItem('fs_items')) || [];
+        let friends = JSON.parse(localStorage.getItem('fs_friends')) || [];
+        let activeFriend = null; 
+        
+        document.getElementById('taxInput').value = localStorage.getItem('fs_tax') || 6;
+        document.getElementById('svcInput').value = localStorage.getItem('fs_svc') || 10;
+
+        renderFriends(); refreshAll();
+
+        function refreshAll() {
+            renderBill(); calculateSplit(); saveData(); updateInstructionText(); renderInlineTabs();
+        }
+
+        // --- FIXED AI FUNCTION ---
+        function startAIProcess() {
+            const magicPrompt = `Extract items and prices from this receipt.\nRules:\n1. Ignore tax/total lines.\n2. Format STRICTLY as: ItemName|Price\n3. Example:\nBurger|25.50`;
+            
+            navigator.clipboard.writeText(magicPrompt).then(() => {
+                alert("Step 1: Instructions Copied!\nStep 2: I will open Gemini now.\nStep 3: Paste instructions there & upload your receipt image.");
+                window.open("https://gemini.google.com/app", "_blank");
+                document.getElementById('importSection').style.display = 'block';
+            }).catch(err => {
+                // Fallback if clipboard fails (rare but possible on some restrictive settings)
+                alert("Could not auto-copy instructions. Please copy this manually:\n\n" + magicPrompt);
+                document.getElementById('importSection').style.display = 'block';
+            });
+        }
+
+        function closeImport() { document.getElementById('importSection').style.display = 'none'; }
+        
+        function processPaste() { 
+            const text = document.getElementById('pasteArea').value;
+            const regex = /(.+?)\|([0-9,.]+)/g; 
+            let match;
+            let count = 0;
+            while ((match = regex.exec(text)) !== null) {
+                let name = match[1].trim();
+                let price = parseFloat(match[2].replace(',',''));
+                if(name && !isNaN(price)) {
+                    items.push({ id: Date.now()+Math.random(), name: name, price: price, assignedTo: [] });
+                    count++;
+                }
+            }
+            if(count > 0) {
+                alert(`Successfully imported ${count} items!`);
+                refreshAll(); 
+                closeImport(); 
+                document.getElementById('pasteArea').value = '';
+            } else {
+                alert("Could not find any items. Make sure you used the Gemini prompt correctly!");
+            }
+        }
+
+        // --- BACKUP LOGIC ---
+        function openBackupModal() { document.getElementById('modalBackup').style.display = 'flex'; }
+        function closeModal() { document.getElementById('modalBackup').style.display = 'none'; }
+        function exportData() {
+            const data = {
+                items: items, friends: friends,
+                tax: document.getElementById('taxInput').value,
+                svc: document.getElementById('svcInput').value
+            };
+            const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url;
+            a.download = `FairSplit_Backup_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+        function importData() { document.getElementById('fileInput').click(); }
+        function handleFileSelect(input) {
+            const file = input.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const d = JSON.parse(e.target.result);
+                    if(d.items && d.friends) {
+                        items = d.items; friends = d.friends;
+                        document.getElementById('taxInput').value = d.tax || 6;
+                        document.getElementById('svcInput').value = d.svc || 10;
+                        saveData(); refreshAll(); closeModal(); alert("Restored!");
+                    } else alert("Invalid file");
+                } catch(err) { alert("Error reading file"); }
+            };
+            reader.readAsText(file); input.value = '';
+        }
+        function hardReset() { if(confirm("Delete EVERYTHING?")) { localStorage.clear(); location.reload(); } }
+
+        // --- CORE LOGIC ---
+        function setActiveFriend(name) { activeFriend = (activeFriend === name) ? null : name; refreshAll(); }
+        function updateInstructionText() {
+            const el = document.getElementById('instruction');
+            if (activeFriend) { el.innerHTML = `Assigning items to <b style="color:var(--primary)">${activeFriend}</b>...`; el.style.color = "var(--primary)"; } 
+            else { el.innerHTML = "👇 Tap a name above to start assigning"; el.style.color = "#999"; }
+        }
+        function addItem() {
+            const name = document.getElementById('itemName').value;
+            const price = parseFloat(document.getElementById('itemPrice').value);
+            if(!name || isNaN(price)) { alert("Enter item and price"); return; }
+            items.push({ id: Date.now(), name: name, price: price, assignedTo: [] });
+            document.getElementById('itemName').value = ''; document.getElementById('itemPrice').value = ''; refreshAll();
+        }
+        function toggleItemAssignment(itemId) {
+            if (!activeFriend) { alert("Select a person first!"); return; }
+            const item = items.find(i => i.id === itemId); if (!item) return;
+            if (item.assignedTo.includes(activeFriend)) item.assignedTo = item.assignedTo.filter(f => f !== activeFriend);
+            else item.assignedTo.push(activeFriend);
+            refreshAll();
+        }
+        function deleteItem(id, event) { event.stopPropagation(); if(confirm("Delete item?")) { items = items.filter(i => i.id !== id); refreshAll(); } }
+        function addFriend() {
+            const name = document.getElementById('friendName').value.trim();
+            if(name && !friends.includes(name)) { friends.push(name); document.getElementById('friendName').value = ''; setActiveFriend(name); }
+            renderFriends();
+        }
+        function removeFriend(name) {
+            if(confirm(`Remove ${name}?`)) {
+                friends = friends.filter(f => f !== name);
+                items.forEach(item => item.assignedTo = item.assignedTo.filter(f => f !== name));
+                if (activeFriend === name) activeFriend = null;
+                renderFriends(); refreshAll();
+            }
+        }
+        function renderFriends() {
+            document.getElementById('friendsList').innerHTML = friends.map(f => `<div class="friend-chip"><span>${f}</span><span class="delete-x" onclick="removeFriend('${f}')">✕</span></div>`).join('');
+        }
+        function renderInlineTabs() {
+            const container = document.getElementById('inlineTabs');
+            if (friends.length === 0) { container.style.display = 'none'; return; }
+            container.style.display = 'flex';
+            container.innerHTML = friends.map(f => `<div class="tab-chip ${f === activeFriend ? 'active' : ''}" onclick="setActiveFriend('${f}')">${f}</div>`).join('');
+        }
+        function renderBill() {
+            const list = document.getElementById('billList'); list.innerHTML = '';
+            items.forEach(item => {
+                const isAssigned = activeFriend && item.assignedTo.includes(activeFriend);
+                const avatars = item.assignedTo.map(p => `<div class="mini-avatar">${p.charAt(0)}</div>`).join('');
+                const div = document.createElement('div');
+                div.className = `item-row ${isAssigned ? 'is-assigned' : ''}`;
+                div.onclick = () => toggleItemAssignment(item.id);
+                div.innerHTML = `<div class="item-left"><strong>${item.name}</strong><div class="item-assignee">${avatars.length ? avatars : '<span style="color:#ccc;">No one</span>'}</div></div><div style="text-align:right;"><div style="font-weight:bold;">${formatMoney(item.price).replace('RM ','')}</div><button class="small danger" style="margin-top:5px; padding:2px 8px;" onclick="deleteItem(${item.id}, event)">X</button></div>`;
+                list.appendChild(div);
+            });
+            calculateTotals();
+        }
+        function calculateSplit() {
+            const taxP = parseFloat(document.getElementById('taxInput').value) || 0;
+            const svcP = parseFloat(document.getElementById('svcInput').value) || 0;
+            const multiplier = 1 + (taxP + svcP) / 100;
+            let friendData = {}; friends.forEach(f => friendData[f] = { total: 0, items: [] });
+            items.forEach(item => {
+                if(item.assignedTo.length > 0) {
+                    const cost = (item.price / item.assignedTo.length) * multiplier; 
+                    item.assignedTo.forEach(p => { if(friendData[p]) { friendData[p].total += cost; friendData[p].items.push(item.name); } });
+                }
+            });
+            const div = document.getElementById('finalSplitList'); div.innerHTML = '';
+            let hasData = false;
+            for (const [name, data] of Object.entries(friendData)) {
+                if (data.total > 0) {
+                    hasData = true;
+                    div.innerHTML += `<div class="split-card"><div class="split-header"><span>${name}</span><span style="color:var(--primary)">${formatMoney(data.total)}</span></div><div class="split-details">${data.items.join(', ')}</div></div>`;
+                }
+            }
+            if(!hasData) div.innerHTML = "<div style='color:#999; text-align:center; padding:10px;'>Add items and assign friends...</div>";
+        }
+        function calculateTotals() {
+            const sub = items.reduce((s, i) => s + i.price, 0);
+            const tax = sub * (parseFloat(document.getElementById('taxInput').value) || 0) / 100;
+            const svc = sub * (parseFloat(document.getElementById('svcInput').value) || 0) / 100;
+            document.getElementById('dispSub').textContent = sub.toFixed(2);
+            document.getElementById('dispTax').textContent = (tax + svc).toFixed(2);
+            document.getElementById('dispTotal').textContent = (sub + tax + svc).toFixed(2);
+        }
+        function formatMoney(n) { return "RM " + n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+        function saveData() {
+            localStorage.setItem('fs_items', JSON.stringify(items));
+            localStorage.setItem('fs_friends', JSON.stringify(friends));
+            localStorage.setItem('fs_tax', document.getElementById('taxInput').value);
+            localStorage.setItem('fs_svc', document.getElementById('svcInput').value);
+        }
+        function copyForWhatsApp() {
+            const taxP = document.getElementById('taxInput').value;
+            const svcP = document.getElementById('svcInput').value;
+            const multiplier = 1 + (parseFloat(taxP)+parseFloat(svcP))/100;
+            let friendTotals = {}; friends.forEach(f => friendTotals[f] = 0);
+            items.forEach(item => { if(item.assignedTo.length > 0) { const cost = (item.price/item.assignedTo.length) * multiplier; item.assignedTo.forEach(p => { if(friendTotals[p]!==undefined) friendTotals[p]+=cost; }); } });
+            let text = `🧾 *FairSplit Bill*\n------------------\n`;
+            let grandTotal = 0;
+            for (const [name, total] of Object.entries(friendTotals)) { if (total > 0) { text += `${name}: ${formatMoney(total)}\n`; grandTotal += total; } }
+            text += `------------------\n*Total:* ${formatMoney(grandTotal)}\n_(Tax ${taxP}% | Svc ${svcP}%)_`;
+            navigator.clipboard.writeText(text).then(() => { alert("Copied!"); });
+        }
+        function newBill() { if(confirm("Start new bill?")) { items = []; refreshAll(); } }
+        function clearFriends() { if(confirm("Remove all friends?")) { friends = []; items.forEach(i=>i.assignedTo=[]); refreshAll(); } }
     </script>
 </body>
 </html>
-
