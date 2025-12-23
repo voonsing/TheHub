@@ -7,339 +7,109 @@
     <meta name="theme-color" content="#121212">
     <title>AutoLog v3.2</title>
     <style>
-        :root { 
-            --bg: #121212; --card: #1E1E1E; --text: #E0E0E0; 
-            --accent: #4FC3F7; --green: #00E676; --yellow: #FFD54F; --red: #CF6679;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px;
-        }
-
-        /* HEADER */
-        .garage-header {
-            background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(10px);
-            position: sticky; top: 0; z-index: 100;
-            border-bottom: 1px solid #333; padding: 15px 15px 0 15px;
-        }
+        :root { --bg: #121212; --card: #1E1E1E; --text: #E0E0E0; --accent: #4FC3F7; --green: #00E676; --yellow: #FFD54F; --red: #CF6679; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding-bottom: 100px; }
+        .garage-header { background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #333; padding: 15px 15px 0 15px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .app-title { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #888; }
         .backup-icon { font-size: 18px; cursor: pointer; color: #666; font-weight: bold; }
-
-        .tabs-container {
-            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px;
-            -ms-overflow-style: none; scrollbar-width: none;
-        }
+        .tabs-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; scrollbar-width: none; }
         .tabs-container::-webkit-scrollbar { display: none; }
-
-        .vehicle-tab {
-            background: #333; color: #888; padding: 8px 16px; border-radius: 20px;
-            font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer;
-            border: 2px solid transparent;
-        }
+        .vehicle-tab { background: #333; color: #888; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer; border: 2px solid transparent; }
         .vehicle-tab.active { background: var(--accent); color: #000; }
-        .add-tab-btn {
-            background: transparent; border: 2px dashed #444; color: #666;
-            min-width: 40px; text-align: center; padding: 8px 0; border-radius: 20px; font-weight: bold; cursor: pointer;
-        }
-
-        /* MAIN VIEW */
+        .add-tab-btn { background: transparent; border: 2px dashed #444; color: #666; min-width: 40px; text-align: center; padding: 8px 0; border-radius: 20px; font-weight: bold; cursor: pointer; }
         .plate-info { text-align: center; padding: 20px; background: linear-gradient(180deg, #1e1e1e 0%, #121212 100%); }
-        .plate-number {
-            font-size: 28px; font-weight: 800; letter-spacing: 2px;
-            border: 3px solid #fff; display: inline-block; padding: 5px 15px; border-radius: 8px;
-            background: #000; color: #fff; margin-bottom: 5px;
-        }
+        .plate-number { font-size: 28px; font-weight: 800; letter-spacing: 2px; border: 3px solid #fff; display: inline-block; padding: 5px 15px; border-radius: 8px; background: #000; color: #fff; margin-bottom: 5px; }
         .vehicle-name { font-size: 14px; color: #888; margin-top: 5px; }
-
-        /* LOGS */
         .log-container { padding: 15px; }
-        .log-card {
-            background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px;
-            display: flex; flex-direction: column; gap: 8px; border-left: 4px solid #444; position: relative;
-        }
-        .log-card.fresh { border-left-color: var(--green); }
-        .log-card.aging { border-left-color: var(--yellow); }
-        .log-card.old { border-left-color: var(--red); }
-        
+        .log-card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; border-left: 4px solid #444; position: relative; }
+        .log-card.fresh { border-left-color: var(--green); } .log-card.aging { border-left-color: var(--yellow); } .log-card.old { border-left-color: var(--red); }
         .log-header { display: flex; justify-content: space-between; }
         .task-name { font-size: 18px; font-weight: bold; }
         .time-badge { font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: bold; background: #333; color: #aaa;}
         .log-details { font-size: 13px; color: #888; display: flex; gap: 15px; }
         .log-actions { margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; display: flex; justify-content: flex-end; gap: 10px; }
         .btn-small { font-size: 12px; padding: 6px 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-update { background: var(--accent); color: #000; }
-        .btn-delete { background: transparent; color: #555; }
-
-        .fab {
-            position: fixed; bottom: 30px; right: 20px;
-            background: var(--accent); color: black; width: 60px; height: 60px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 32px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 90;
-        }
-
-        /* MODALS */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: center; justify-content: center;
-        }
+        .btn-update { background: var(--accent); color: #000; } .btn-delete { background: transparent; color: #555; }
+        .fab { position: fixed; bottom: 30px; right: 20px; background: var(--accent); color: black; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 90; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: center; justify-content: center; }
         .modal { background: #222; width: 85%; max-width: 350px; padding: 25px; border-radius: 15px; }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; }
-        .input-group input, .input-group select {
-            width: 100%; padding: 12px; background: #333; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; font-size: 16px; -webkit-appearance: none;
-        }
+        .input-group { margin-bottom: 15px; } .input-group label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; background: #333; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; font-size: 16px; -webkit-appearance: none; }
         .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
         .btn-modal { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; }
-        .btn-confirm { background: var(--accent); color: black; }
-        .btn-cancel { background: #444; color: white; }
-        
-        /* QUICK TAGS (RESTORED 5 ITEMS) */
+        .btn-confirm { background: var(--accent); color: black; } .btn-cancel { background: #444; color: white; }
         .quick-tags { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-top: 5px; }
         .q-tag { background: #333; color: #aaa; padding: 5px 10px; border-radius: 15px; font-size: 11px; white-space: nowrap; cursor: pointer; border: 1px solid #444; }
-
-        /* BACKUP MODAL */
         .backup-btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .b-btn { padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .b-export { background: #333; color: var(--accent); border: 1px solid var(--accent); }
-        .b-import { background: #333; color: var(--green); border: 1px solid var(--green); }
-        .b-reset { background: #333; color: var(--red); border: 1px solid var(--red); }
-        
-        .restore-link {
-            color: #666; text-decoration: underline; cursor: pointer; font-size: 14px; margin-top: 20px; display: inline-block;
-        }
+        .b-export { background: #333; color: var(--accent); border: 1px solid var(--accent); } .b-import { background: #333; color: var(--green); border: 1px solid var(--green); } .b-reset { background: #333; color: var(--red); border: 1px solid var(--red); }
+        .restore-link { color: #666; text-decoration: underline; cursor: pointer; font-size: 14px; margin-top: 20px; display: inline-block; }
     </style>
 </head>
 <body>
-
     <div class="garage-header">
         <div class="header-top">
             <div class="backup-icon" onclick="openBackupModal()">☁️ Data</div>
             <div class="app-title">My Garage</div>
-            <div style="width: 30px;"></div>
+            <div class="backup-icon" onclick="window.location.href='index.html'" style="font-size:20px;">🏠</div>
         </div>
         <div class="tabs-container" id="tabsList"></div>
     </div>
-
     <div id="vehicleView">
         <div class="plate-info">
             <div class="plate-number" id="dispPlate">---</div>
-            <div class="vehicle-name">
-                <span id="dispName">...</span> 
-                <span onclick="deleteCurrentVehicle()" style="color:#CF6679; margin-left:15px; cursor:pointer; font-size:12px; border:1px solid #CF6679; padding:2px 8px; border-radius:10px;">Delete</span>
-            </div>
+            <div class="vehicle-name"><span id="dispName">...</span> <span onclick="deleteCurrentVehicle()" style="color:#CF6679; margin-left:15px; cursor:pointer; font-size:12px; border:1px solid #CF6679; padding:2px 8px; border-radius:10px;">Delete</span></div>
         </div>
         <div class="log-container" id="logList"></div>
-        <div id="emptyLogMsg" style="text-align:center; color:#555; margin-top:50px; display:none;">
-            No records.<br>Tap + to add one!
-        </div>
+        <div id="emptyLogMsg" style="text-align:center; color:#555; margin-top:50px; display:none;">No records.<br>Tap + to add one!</div>
     </div>
-    
     <div id="noGarageView" style="display:none; text-align:center; padding:80px 20px;">
-        <h1 style="font-size:50px; margin:0;">🚗</h1>
-        <h2 style="color:#fff;">Garage Empty</h2>
+        <h1 style="font-size:50px; margin:0;">🚗</h1><h2 style="color:#fff;">Garage Empty</h2>
         <p style="color:#666; margin-bottom:30px;">Add your first vehicle to get started.</p>
-        
-        <button onclick="openAddVehicleModal()" style="background:var(--accent); border:none; padding:15px 30px; border-radius:30px; font-weight:bold; font-size:16px;">+ Add Vehicle</button>
-        
-        <br>
+        <button onclick="openAddVehicleModal()" style="background:var(--accent); border:none; padding:15px 30px; border-radius:30px; font-weight:bold; font-size:16px;">+ Add Vehicle</button><br>
         <div class="restore-link" onclick="openBackupModal()">☁️ Restore Backup</div>
     </div>
-
     <div class="fab" onclick="openAddLogModal()">+</div>
-
     <div class="modal-overlay" id="modalVehicle">
-        <div class="modal">
-            <h3>Add Vehicle</h3>
-            <div class="input-group"><label>Name</label><input type="text" id="vName" placeholder="Honda City"></div>
-            <div class="input-group"><label>Plate</label><input type="text" id="vPlate" placeholder="W 1234 A" style="text-transform:uppercase;"></div>
-            <div class="modal-actions">
-                <button class="btn-modal btn-cancel" onclick="closeModals()">Cancel</button>
-                <button class="btn-modal btn-confirm" onclick="saveVehicle()">Create</button>
-            </div>
-        </div>
+        <div class="modal"><h3>Add Vehicle</h3><div class="input-group"><label>Name</label><input type="text" id="vName" placeholder="Honda City"></div><div class="input-group"><label>Plate</label><input type="text" id="vPlate" placeholder="W 1234 A" style="text-transform:uppercase;"></div><div class="modal-actions"><button class="btn-modal btn-cancel" onclick="closeModals()">Cancel</button><button class="btn-modal btn-confirm" onclick="saveVehicle()">Create</button></div></div>
     </div>
-
     <div class="modal-overlay" id="modalLog">
         <div class="modal">
-            <h3 id="logModalTitle">Service Record</h3>
-            <input type="hidden" id="logId"> 
-            
-            <div class="input-group">
-                <label>Task</label><input type="text" id="lTask" placeholder="Type or pick below...">
-                <div class="quick-tags">
-                    <span class="q-tag" onclick="fillTask('Engine Oil')">Engine Oil</span>
-                    <span class="q-tag" onclick="fillTask('Oil Filter')">Oil Filter</span>
-                    <span class="q-tag" onclick="fillTask('Tires')">Tires</span>
-                    <span class="q-tag" onclick="fillTask('Battery')">Battery</span>
-                    <span class="q-tag" onclick="fillTask('Chain Lube')">Chain Lube</span>
-                </div>
-            </div>
-            
-            <div class="input-group"><label>Date</label><input type="date" id="lDate"></div>
-            <div class="input-group"><label>Odometer</label><input type="number" id="lKm" placeholder="55000"></div>
-            
-            <div class="input-group"><label>Note</label><input type="text" id="lNote" placeholder="Workshop name, Brand, etc."></div>
-            
-            <div class="modal-actions">
-                <button class="btn-modal btn-cancel" onclick="closeModals()">Cancel</button>
-                <button class="btn-modal btn-confirm" onclick="saveLog()">Save</button>
-            </div>
+            <h3 id="logModalTitle">Service Record</h3><input type="hidden" id="logId"> 
+            <div class="input-group"><label>Task</label><input type="text" id="lTask" placeholder="Type or pick below..."><div class="quick-tags"><span class="q-tag" onclick="fillTask('Engine Oil')">Engine Oil</span><span class="q-tag" onclick="fillTask('Oil Filter')">Oil Filter</span><span class="q-tag" onclick="fillTask('Tires')">Tires</span><span class="q-tag" onclick="fillTask('Battery')">Battery</span><span class="q-tag" onclick="fillTask('Chain Lube')">Chain Lube</span></div></div>
+            <div class="input-group"><label>Date</label><input type="date" id="lDate"></div><div class="input-group"><label>Odometer</label><input type="number" id="lKm" placeholder="55000"></div><div class="input-group"><label>Note</label><input type="text" id="lNote" placeholder="Workshop name, Brand, etc."></div>
+            <div class="modal-actions"><button class="btn-modal btn-cancel" onclick="closeModals()">Cancel</button><button class="btn-modal btn-confirm" onclick="saveLog()">Save</button></div>
         </div>
     </div>
-
     <div class="modal-overlay" id="modalBackup">
-        <div class="modal">
-            <h3>Backup & Restore</h3>
-            <p style="color:#888; font-size:12px; line-height:1.4;">
-                Save a file to your iPhone Files (iCloud) to keep your data safe.
-            </p>
-            <div class="backup-btn-row">
-                <button class="b-btn b-export" onclick="exportToFile()">📤 Save to iCloud/Files</button>
-                <button class="b-btn b-import" onclick="importFromFile()">📥 Load from iCloud/Files</button>
-                <button class="b-btn b-reset" onclick="resetAllData()">🗑 Erase Everything</button>
-            </div>
-            <div style="margin-top:15px; text-align:center;">
-                <button onclick="closeModals()" style="background:transparent; color:#666; border:none; padding:10px;">Close</button>
-            </div>
-        </div>
+        <div class="modal"><h3>Backup & Restore</h3><p style="color:#888; font-size:12px; line-height:1.4;">Save a file to your iPhone Files (iCloud) to keep your data safe.</p><div class="backup-btn-row"><button class="b-btn b-export" onclick="exportToFile()">📤 Save to iCloud/Files</button><button class="b-btn b-import" onclick="importFromFile()">📥 Load from iCloud/Files</button><button class="b-btn b-reset" onclick="resetAllData()">🗑 Erase Everything</button></div><div style="margin-top:15px; text-align:center;"><button onclick="closeModals()" style="background:transparent; color:#666; border:none; padding:10px;">Close</button></div></div>
     </div>
     <input type="file" id="fileInput" style="display:none" onchange="handleFileSelect(this)">
-
     <script>
-        let appData = JSON.parse(localStorage.getItem('autolog_v2')) || { vehicles: [], activeId: null };
-        init();
-
-        function init() {
-            if (appData.vehicles.length === 0) showNoGarage();
-            else {
-                if (!appData.vehicles.find(v => v.id === appData.activeId)) appData.activeId = appData.vehicles[0].id;
-                showGarage(); renderTabs(); renderActiveVehicle();
-            }
-        }
-
-        // --- BACKUP ---
-        function openBackupModal() { document.getElementById('modalBackup').style.display = 'flex'; }
-        function exportToFile() {
-            if(appData.vehicles.length === 0) return alert("Nothing to back up!");
-            const blob = new Blob([JSON.stringify(appData)], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url;
-            const date = new Date().toISOString().slice(0,10);
-            a.download = `AutoLog_Backup_${date}.json`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        }
-        function importFromFile() { document.getElementById('fileInput').click(); }
-        function handleFileSelect(input) {
-            const file = input.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const loaded = JSON.parse(e.target.result);
-                    if (loaded.vehicles && Array.isArray(loaded.vehicles)) {
-                        appData = loaded; saveData(); init(); closeModals();
-                        alert("Restored!");
-                    } else alert("Invalid file.");
-                } catch (err) { alert("Read error."); }
-            };
-            reader.readAsText(file); input.value = '';
-        }
-        function resetAllData() { if(confirm("Delete ALL?")) { localStorage.removeItem('autolog_v2'); location.reload(); } }
-
-        // --- APP LOGIC ---
-        function renderTabs() {
-            const c = document.getElementById('tabsList'); c.innerHTML = '';
-            appData.vehicles.forEach(v => {
-                const t = document.createElement('div'); t.className = `vehicle-tab ${v.id===appData.activeId?'active':''}`;
-                t.textContent = v.name; t.onclick=()=>switchTab(v.id); c.appendChild(t);
-            });
-            const add = document.createElement('div'); add.className='add-tab-btn'; add.textContent='+'; add.onclick=openAddVehicleModal; c.appendChild(add);
-        }
-        function renderActiveVehicle() {
-            const v = appData.vehicles.find(x => x.id === appData.activeId);
-            if(!v) return;
-            document.getElementById('dispPlate').textContent = v.plate;
-            document.getElementById('dispName').textContent = v.name;
-            const list = document.getElementById('logList'); list.innerHTML = '';
-            
-            if(v.logs.length === 0) document.getElementById('emptyLogMsg').style.display = 'block';
-            else {
-                document.getElementById('emptyLogMsg').style.display = 'none';
-                [...v.logs].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(log => {
-                    const ago = getTimeAgo(log.date);
-                    let cls = ago.days>180?'old':(ago.days>90?'aging':'fresh');
-                    const d = document.createElement('div'); d.className=`log-card ${cls}`;
-                    d.innerHTML = `
-                        <div class="log-header"><div class="task-name">${log.task}</div><div class="time-badge">${ago.text}</div></div>
-                        <div class="log-details"><div>📅 ${log.date}</div><div>🚗 ${log.km} km</div></div>
-                        <div class="log-actions">
-                            <button class="btn-small btn-delete" onclick="deleteLog(${log.id})">Del</button>
-                            <button class="btn-small btn-update" onclick="openUpdateModal(${log.id})">Edit</button>
-                        </div>`;
-                    list.appendChild(d);
-                });
-            }
-        }
-        function switchTab(id) { appData.activeId = id; saveData(); renderTabs(); renderActiveVehicle(); }
-        function saveVehicle() {
-            const n=document.getElementById('vName').value, p=document.getElementById('vPlate').value.toUpperCase();
-            if(!n||!p) return alert("Missing info");
-            const newV = { id:Date.now(), name:n, plate:p, logs:[] };
-            appData.vehicles.push(newV); appData.activeId=newV.id; saveData(); closeModals(); init();
-            document.getElementById('vName').value=''; document.getElementById('vPlate').value='';
-        }
-        function deleteCurrentVehicle() {
-            if(confirm("Delete vehicle?")) { appData.vehicles=appData.vehicles.filter(v=>v.id!==appData.activeId); appData.activeId=null; saveData(); init(); }
-        }
-        function saveLog() {
-            const vid=appData.vehicles.findIndex(v=>v.id===appData.activeId); if(vid===-1) return;
-            const lid=document.getElementById('logId').value, task=document.getElementById('lTask').value, date=document.getElementById('lDate').value;
-            if(!task||!date) return alert("Missing info");
-            const km=document.getElementById('lKm').value, note=document.getElementById('lNote').value;
-            if(lid) {
-                const idx=appData.vehicles[vid].logs.findIndex(l=>l.id==lid);
-                if(idx>-1) appData.vehicles[vid].logs[idx] = {...appData.vehicles[vid].logs[idx], task, date, km:parseInt(km)||0, note};
-            } else {
-                appData.vehicles[vid].logs.push({ id:Date.now(), task, date, km:parseInt(km)||0, note });
-            }
-            saveData(); closeModals(); renderActiveVehicle();
-        }
-        function deleteLog(id) {
-            if(confirm("Delete record?")) {
-                const v=appData.vehicles.find(x=>x.id===appData.activeId);
-                v.logs=v.logs.filter(l=>l.id!==id); saveData(); renderActiveVehicle();
-            }
-        }
-        function getTimeAgo(d) {
-            const diff = Math.floor((new Date()-new Date(d))/(86400000));
-            return { days:diff, text: diff<0?'Future':(diff===0?'Today':(diff<30?diff+'d ago': Math.floor(diff/30)+'mo ago')) };
-        }
-        function saveData() { localStorage.setItem('autolog_v2', JSON.stringify(appData)); }
-        
-        function showNoGarage() { 
-            document.getElementById('noGarageView').style.display='block'; 
-            document.getElementById('vehicleView').style.display='none'; 
-            document.querySelector('.garage-header').style.display='none'; 
-            document.querySelector('.fab').style.display='none'; 
-        }
-        function showGarage() { 
-            document.getElementById('noGarageView').style.display='none'; 
-            document.getElementById('vehicleView').style.display='block'; 
-            document.querySelector('.garage-header').style.display='block'; 
-            document.querySelector('.fab').style.display='flex'; 
-        }
-        function openAddVehicleModal() { document.getElementById('modalVehicle').style.display='flex'; }
-        function openAddLogModal() { 
-            document.getElementById('logId').value=''; document.getElementById('lTask').value=''; document.getElementById('lDate').valueAsDate=new Date();
-            document.getElementById('lKm').value=''; document.getElementById('lNote').value=''; document.getElementById('modalLog').style.display='flex'; 
-        }
-        function openUpdateModal(id) {
-            const v=appData.vehicles.find(x=>x.id===appData.activeId), l=v.logs.find(x=>x.id===id);
-            document.getElementById('logId').value=id; document.getElementById('lTask').value=l.task; document.getElementById('lDate').value=l.date;
-            document.getElementById('lKm').value=l.km; document.getElementById('lNote').value=l.note; document.getElementById('modalLog').style.display='flex';
-        }
-        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(e=>e.style.display='none'); }
-        function fillTask(t) { document.getElementById('lTask').value=t; }
+        let appData=JSON.parse(localStorage.getItem('autolog_v2'))||{vehicles:[],activeId:null}; init();
+        function init(){if(appData.vehicles.length===0)showNoGarage();else{if(!appData.vehicles.find(v=>v.id===appData.activeId))appData.activeId=appData.vehicles[0].id;showGarage();renderTabs();renderActiveVehicle()}}
+        function openBackupModal(){document.getElementById('modalBackup').style.display='flex'}
+        function exportToFile(){if(appData.vehicles.length===0)return alert("Nothing to back up!");const b=new Blob([JSON.stringify(appData)],{type:"application/json"});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`AutoLog_Backup_${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a)}
+        function importFromFile(){document.getElementById('fileInput').click()}
+        function handleFileSelect(i){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const l=JSON.parse(e.target.result);if(l.vehicles&&Array.isArray(l.vehicles)){appData=l;saveData();init();closeModals();alert("Restored!")}else alert("Invalid file.")}catch(x){alert("Read error.")}};r.readAsText(f);i.value=''}
+        function resetAllData(){if(confirm("Delete ALL?")){localStorage.removeItem('autolog_v2');location.reload()}}
+        function renderTabs(){const c=document.getElementById('tabsList');c.innerHTML='';appData.vehicles.forEach(v=>{const t=document.createElement('div');t.className=`vehicle-tab ${v.id===appData.activeId?'active':''}`;t.textContent=v.name;t.onclick=()=>switchTab(v.id);c.appendChild(t)});const a=document.createElement('div');a.className='add-tab-btn';a.textContent='+';a.onclick=openAddVehicleModal;c.appendChild(a)}
+        function renderActiveVehicle(){const v=appData.vehicles.find(x=>x.id===appData.activeId);if(!v)return;document.getElementById('dispPlate').textContent=v.plate;document.getElementById('dispName').textContent=v.name;const l=document.getElementById('logList');l.innerHTML='';if(v.logs.length===0)document.getElementById('emptyLogMsg').style.display='block';else{document.getElementById('emptyLogMsg').style.display='none';[...v.logs].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(log=>{const ago=getTimeAgo(log.date);let cls=ago.days>180?'old':(ago.days>90?'aging':'fresh');const d=document.createElement('div');d.className=`log-card ${cls}`;d.innerHTML=`<div class="log-header"><div class="task-name">${log.task}</div><div class="time-badge">${ago.text}</div></div><div class="log-details"><div>📅 ${log.date}</div><div>🚗 ${log.km} km</div></div>${log.note?`<div style="font-size:12px;color:#666;margin-top:5px;font-style:italic;">"${log.note}"</div>`:''}<div class="log-actions"><button class="btn-small btn-delete" onclick="deleteLog(${log.id})">Del</button><button class="btn-small btn-update" onclick="openUpdateModal(${log.id})">Edit</button></div>`;l.appendChild(d)})}}
+        function switchTab(id){appData.activeId=id;saveData();renderTabs();renderActiveVehicle()}
+        function saveVehicle(){const n=document.getElementById('vName').value,p=document.getElementById('vPlate').value.toUpperCase();if(!n||!p)return alert("Missing info");const v={id:Date.now(),name:n,plate:p,logs:[]};appData.vehicles.push(v);appData.activeId=v.id;saveData();closeModals();init();document.getElementById('vName').value='';document.getElementById('vPlate').value=''}
+        function deleteCurrentVehicle(){if(confirm("Delete vehicle?")){appData.vehicles=appData.vehicles.filter(v=>v.id!==appData.activeId);appData.activeId=null;saveData();init()}}
+        function saveLog(){const vid=appData.vehicles.findIndex(v=>v.id===appData.activeId);if(vid===-1)return;const lid=document.getElementById('logId').value,task=document.getElementById('lTask').value,date=document.getElementById('lDate').value,km=document.getElementById('lKm').value,note=document.getElementById('lNote').value;if(!task||!date)return alert("Missing info");if(lid){const idx=appData.vehicles[vid].logs.findIndex(l=>l.id==lid);if(idx>-1)appData.vehicles[vid].logs[idx]={...appData.vehicles[vid].logs[idx],task,date,km:parseInt(km)||0,note}}else{appData.vehicles[vid].logs.push({id:Date.now(),task,date,km:parseInt(km)||0,note})}saveData();closeModals();renderActiveVehicle()}
+        function deleteLog(id){if(confirm("Delete record?")){const v=appData.vehicles.find(x=>x.id===appData.activeId);v.logs=v.logs.filter(l=>l.id!==id);saveData();renderActiveVehicle()}}
+        function getTimeAgo(d){const diff=Math.floor((new Date()-new Date(d))/86400000);return{days:diff,text:diff<0?'Future':(diff===0?'Today':(diff<30?diff+'d ago':Math.floor(diff/30)+'mo ago'))}}
+        function saveData(){localStorage.setItem('autolog_v2',JSON.stringify(appData))}
+        function showNoGarage(){document.getElementById('noGarageView').style.display='block';document.getElementById('vehicleView').style.display='none';document.querySelector('.garage-header').style.display='none';document.querySelector('.fab').style.display='none'}
+        function showGarage(){document.getElementById('noGarageView').style.display='none';document.getElementById('vehicleView').style.display='block';document.querySelector('.garage-header').style.display='block';document.querySelector('.fab').style.display='flex'}
+        function openAddVehicleModal(){document.getElementById('modalVehicle').style.display='flex'}
+        function openAddLogModal(){document.getElementById('logId').value='';document.getElementById('lTask').value='';document.getElementById('lDate').valueAsDate=new Date();document.getElementById('lKm').value='';document.getElementById('lNote').value='';document.getElementById('modalLog').style.display='flex'}
+        function openUpdateModal(id){const v=appData.vehicles.find(x=>x.id===appData.activeId),l=v.logs.find(x=>x.id===id);document.getElementById('logId').value=id;document.getElementById('lTask').value=l.task;document.getElementById('lDate').value=l.date;document.getElementById('lKm').value=l.km;document.getElementById('lNote').value=l.note;document.getElementById('modalLog').style.display='flex'}
+        function closeModals(){document.querySelectorAll('.modal-overlay').forEach(e=>e.style.display='none')}
+        function fillTask(t){document.getElementById('lTask').value=t}
     </script>
 </body>
 </html>
