@@ -5,360 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#121212">
-    <title>SubTrack Edit</title>
+    <title>SubTrack v8</title>
     <style>
-        :root { 
-            --bg: #121212; --card: #1E1E1E; --text: #E0E0E0; 
-            --accent: #BB86FC; --red: #CF6679; --green: #03DAC6; --yellow: #FFD54F; 
-            --blue: #4fc3f7;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg); color: var(--text); margin: 0; padding: 20px;
-            padding-top: max(20px, env(safe-area-inset-top));
-            padding-bottom: max(100px, env(safe-area-inset-bottom));
-        }
-
-        /* DASHBOARD */
-        .dashboard {
-            text-align: center; margin-bottom: 30px;
-            background: linear-gradient(135deg, #3700B3, #6200EE);
-            padding: 25px; border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(98, 0, 238, 0.3);
-        }
+        :root { --bg: #121212; --card: #1E1E1E; --text: #E0E0E0; --accent: #BB86FC; --red: #CF6679; --green: #03DAC6; --yellow: #FFD54F; --blue: #4fc3f7; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: max(100px, env(safe-area-inset-bottom)); }
+        .dashboard { text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, #3700B3, #6200EE); padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(98, 0, 238, 0.3); position: relative; }
         .dashboard h1 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
         .total-amount { font-size: 42px; font-weight: 800; margin: 5px 0 0 0; color: white; }
         .total-label { font-size: 12px; opacity: 0.7; }
-        
-        /* INPUT FORM */
-        .add-card {
-            background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 25px;
-            border: 1px solid #333; transition: border-color 0.3s;
-        }
+        .backup-icon { position: absolute; top: 15px; right: 15px; font-size: 20px; cursor: pointer; color: rgba(255,255,255,0.7); }
+        .add-card { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #333; transition: border-color 0.3s; }
         .add-card.editing { border-color: var(--accent); background: #2a2a2a; }
-        
-        h2 { font-size: 16px; margin-top: 0; margin-bottom: 15px; color: var(--accent); text-transform: uppercase; display: flex; justify-content: space-between; align-items: center;}
-        
+        h2 { font-size: 16px; margin-top: 0; margin-bottom: 15px; color: var(--accent); text-transform: uppercase; }
         .row { display: flex; gap: 10px; margin-bottom: 12px; }
-        input, select {
-            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333;
-            background: #2C2C2C; color: white; font-size: 16px; box-sizing: border-box;
-            -webkit-appearance: none;
-        }
-        input:focus, select:focus { outline: 2px solid var(--accent); border-color: transparent; }
-        
+        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #2C2C2C; color: white; font-size: 16px; -webkit-appearance: none; box-sizing: border-box; }
         .hidden { display: none; }
-        
-        /* BUTTONS */
         .btn-row { display: flex; gap: 10px; }
-        button.action-btn {
-            width: 100%; background: var(--accent); color: black; font-weight: bold;
-            padding: 14px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;
-        }
-        button.cancel-btn {
-            background: #444; color: white; width: 30%;
-        }
-
-        /* LIST ITEMS */
+        button.action-btn { width: 100%; background: var(--accent); color: black; font-weight: bold; padding: 14px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+        button.cancel-btn { background: #444; color: white; width: 30%; }
         .sub-list { display: flex; flex-direction: column; gap: 12px; }
-        
-        .sub-card {
-            background: var(--card); padding: 16px; border-radius: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-left: 5px solid #444; position: relative;
-            cursor: pointer; /* SHOWS IT IS CLICKABLE */
-            transition: transform 0.1s;
-        }
-        .sub-card:active { transform: scale(0.98); }
-        
-        .sub-card.urgent { border-left-color: var(--red); background: rgba(207, 102, 121, 0.1); }
-        .sub-card.soon { border-left-color: var(--yellow); }
-        .sub-card.safe { border-left-color: var(--green); }
-        .sub-card.editing-active { border: 2px solid var(--accent); }
-
+        .sub-card { background: var(--card); padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #444; position: relative; cursor: pointer; }
+        .sub-card.urgent { border-left-color: var(--red); background: rgba(207, 102, 121, 0.1); } .sub-card.soon { border-left-color: var(--yellow); } .sub-card.safe { border-left-color: var(--green); } .sub-card.editing-active { border: 2px solid var(--accent); }
         .sub-info { flex-grow: 1; pointer-events: none; }
         .sub-name { font-weight: bold; font-size: 17px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;}
-        
         .cycle-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
-        .badge-mo { background: #333; color: #aaa; }
-        .badge-qt { background: rgba(79, 195, 247, 0.2); color: var(--blue); }
-        .badge-yr { background: rgba(187, 134, 252, 0.2); color: var(--accent); }
-
-        .sub-date { font-size: 13px; color: #999; margin-top: 2px; }
-        .sub-date strong { color: var(--text); }
-        
-        .sub-price { text-align: right; min-width: 80px; pointer-events: none; }
-        .price-text { font-size: 16px; font-weight: bold; color: white; }
+        .badge-mo { background: #333; color: #aaa; } .badge-qt { background: rgba(79, 195, 247, 0.2); color: var(--blue); } .badge-yr { background: rgba(187, 134, 252, 0.2); color: var(--accent); }
+        .sub-date { font-size: 13px; color: #999; margin-top: 2px; } .sub-date strong { color: var(--text); }
+        .sub-price { text-align: right; min-width: 80px; pointer-events: none; } .price-text { font-size: 16px; font-weight: bold; color: white; }
         .days-left { font-size: 11px; font-weight: bold; margin-top: 4px; padding: 3px 8px; border-radius: 10px; display: inline-block;}
-        
-        .urgent .days-left { color: var(--red); background: rgba(207, 102, 121, 0.2); }
-        .soon .days-left { color: var(--yellow); background: rgba(255, 213, 79, 0.2); }
-        .safe .days-left { color: #888; background: #333; }
-
-        .delete-btn { 
-            background: transparent; border: none; color: #555; font-size: 24px; 
-            padding: 0 0 0 15px; cursor: pointer; height: 100%; z-index: 10;
-        }
-
+        .urgent .days-left { color: var(--red); background: rgba(207, 102, 121, 0.2); } .soon .days-left { color: var(--yellow); background: rgba(255, 213, 79, 0.2); } .safe .days-left { color: #888; background: #333; }
+        .delete-btn { background: transparent; border: none; color: #555; font-size: 24px; padding: 0 0 0 15px; cursor: pointer; height: 100%; z-index: 10; }
         .empty-state { text-align: center; color: #666; margin-top: 30px; font-style: italic; font-size: 14px; }
+        .restore-link { color: var(--accent); text-decoration: underline; cursor: pointer; display: block; margin-top: 10px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: center; justify-content: center; }
+        .modal { background: #222; width: 85%; max-width: 350px; padding: 25px; border-radius: 15px; text-align: center; } .modal h3 { margin-top: 0; color: #E0E0E0; }
+        .backup-btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .b-btn { padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .b-export { background: #333; color: var(--accent); border: 1px solid var(--accent); } .b-import { background: #333; color: var(--green); border: 1px solid var(--green); } .b-reset { background: #333; color: var(--red); border: 1px solid var(--red); }
     </style>
 </head>
 <body>
-
     <div class="dashboard">
+        <div class="backup-icon" onclick="window.location.href='index.html'" style="left:15px; right:auto;">🏠</div>
+        <div class="backup-icon" onclick="openBackupModal()">☁️</div>
         <h1>Monthly Damage</h1>
         <div class="total-amount" id="totalDisplay">RM 0.00</div>
         <div class="total-label">Average per month</div>
     </div>
-
     <div class="add-card" id="formCard">
         <h2 id="formTitle">Add Subscription</h2>
-        
-        <div class="row">
-            <input type="text" id="subName" placeholder="Name (e.g. Netflix)">
-        </div>
-
-        <div class="row">
-            <input type="number" id="subPrice" placeholder="RM" inputmode="decimal" style="flex:1;">
-            <select id="subCycle" style="flex:1;" onchange="toggleMonthInput()">
-                <option value="1">Monthly</option>
-                <option value="3">Quarterly</option>
-                <option value="12">Yearly</option>
-            </select>
-        </div>
-        
-        <div class="row">
-            <select id="subDay" style="flex:1;">
-                <option value="" disabled selected>Bill Day (1-31)</option>
-            </select>
-
-            <select id="subStartMonth" style="flex:1;" class="hidden">
-                <option value="" disabled selected>Start Month</option>
-                <option value="0">January</option>
-                <option value="1">February</option>
-                <option value="2">March</option>
-                <option value="3">April</option>
-                <option value="4">May</option>
-                <option value="5">June</option>
-                <option value="6">July</option>
-                <option value="7">August</option>
-                <option value="8">September</option>
-                <option value="9">October</option>
-                <option value="10">November</option>
-                <option value="11">December</option>
-            </select>
-        </div>
-        
-        <div class="btn-row">
-            <button class="action-btn cancel-btn hidden" id="cancelBtn" onclick="resetForm()">Cancel</button>
-            <button class="action-btn" id="submitBtn" onclick="handleFormSubmit()">+ Track It</button>
-        </div>
+        <div class="row"> <input type="text" id="subName" placeholder="Name (e.g. Netflix)"> </div>
+        <div class="row"><input type="number" id="subPrice" placeholder="RM" inputmode="decimal" style="flex:1;"><select id="subCycle" style="flex:1;" onchange="toggleMonthInput()"><option value="1">Monthly</option><option value="3">Quarterly</option><option value="12">Yearly</option></select></div>
+        <div class="row"><select id="subDay" style="flex:1;"><option value="" disabled selected>Bill Day</option></select><select id="subStartMonth" style="flex:1;" class="hidden"><option value="" disabled selected>Start Month</option><option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option></select></div>
+        <div class="btn-row"><button class="action-btn cancel-btn hidden" id="cancelBtn" onclick="resetForm()">Cancel</button><button class="action-btn" id="submitBtn" onclick="handleFormSubmit()">+ Track It</button></div>
     </div>
-
     <div id="subList" class="sub-list"></div>
-    <div id="emptyMsg" class="empty-state">No subscriptions yet.</div>
-    
-    <div style="text-align:center; margin-top:30px;">
-        <button onclick="clearData()" style="background:transparent; border:1px solid #333; color:#555; padding:8px 15px; border-radius:20px; font-size:12px;">Reset All Data</button>
+    <div id="emptyMsg" class="empty-state">No subscriptions yet.<br><br><span class="restore-link" onclick="openBackupModal()">Restore Backup?</span></div>
+    <div class="modal-overlay" id="modalBackup">
+        <div class="modal"><h3>Backup & Restore</h3><p style="color:#888; font-size:12px; line-height:1.4;">Save a file to your iPhone Files (iCloud) to keep your data safe.</p><div class="backup-btn-row"><button class="b-btn b-export" onclick="exportData()">📤 Save to iCloud/Files</button><button class="b-btn b-import" onclick="importData()">📥 Load from iCloud/Files</button><button class="b-btn b-reset" onclick="hardReset()">🗑 Erase All Data</button></div><button onclick="closeModal()" style="margin-top:20px; background:transparent; color:#666; border:none;">Close</button></div>
     </div>
-
+    <input type="file" id="fileInput" style="display:none" onchange="handleFileSelect(this)">
     <script>
-        // --- SETUP ---
-        const daySelect = document.getElementById('subDay');
-        let editingId = null; // Tracks if we are editing
-
-        function getOrdinal(n) {
-            const s = ["th", "st", "nd", "rd"];
-            const v = n % 100;
-            return n + (s[(v - 20) % 10] || s[v] || s[0]);
-        }
-        for(let i=1; i<=31; i++) {
-            let opt = document.createElement('option');
-            opt.value = i; opt.textContent = getOrdinal(i); daySelect.appendChild(opt);
-        }
-
-        function toggleMonthInput() {
-            const cycle = document.getElementById('subCycle').value;
-            const monthInput = document.getElementById('subStartMonth');
-            if (cycle == "1") monthInput.classList.add('hidden');
-            else monthInput.classList.remove('hidden');
-        }
-
-        let subs = JSON.parse(localStorage.getItem('st_edit_subs')) || [];
-        render();
-
-        // --- FORM LOGIC ---
-        function handleFormSubmit() {
-            const name = document.getElementById('subName').value;
-            const price = parseFloat(document.getElementById('subPrice').value);
-            const cycle = parseInt(document.getElementById('subCycle').value);
-            const day = parseInt(document.getElementById('subDay').value);
-            let startMonth = parseInt(document.getElementById('subStartMonth').value);
-
-            if(!name || isNaN(price) || isNaN(day)) {
-                alert("Please check Name, Price, and Day.");
-                return;
-            }
-            if(cycle > 1 && isNaN(startMonth)) {
-                alert("Please select a Start Month.");
-                return;
-            }
-            if(cycle === 1) startMonth = new Date().getMonth();
-
-            if (editingId) {
-                // UPDATE EXISTING
-                subs = subs.map(s => {
-                    if (s.id === editingId) {
-                        return { ...s, name, price, cycle, day, startMonth };
-                    }
-                    return s;
-                });
-            } else {
-                // CREATE NEW
-                subs.push({
-                    id: Date.now(),
-                    name, price, cycle, day, startMonth
-                });
-            }
-
-            resetForm();
-            save();
-            render();
-        }
-
-        function editSub(id) {
-            const item = subs.find(s => s.id === id);
-            if (!item) return;
-
-            editingId = id;
-            
-            // Populate Form
-            document.getElementById('subName').value = item.name;
-            document.getElementById('subPrice').value = item.price;
-            document.getElementById('subCycle').value = item.cycle;
-            document.getElementById('subDay').value = item.day;
-            
-            toggleMonthInput(); // Show/Hide month selector based on cycle
-            if(item.cycle > 1) {
-                document.getElementById('subStartMonth').value = item.startMonth;
-            }
-
-            // Visual Changes
-            document.getElementById('formCard').classList.add('editing');
-            document.getElementById('formTitle').textContent = "Editing Subscription";
-            document.getElementById('submitBtn').textContent = "✓ Update";
-            document.getElementById('cancelBtn').classList.remove('hidden');
-            
-            // Scroll to top to show form
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            render(); // Re-render to show highlight border
-        }
-
-        function resetForm() {
-            editingId = null;
-            document.getElementById('subName').value = '';
-            document.getElementById('subPrice').value = '';
-            document.getElementById('subCycle').value = '1';
-            document.getElementById('subDay').value = '';
-            document.getElementById('subStartMonth').value = '';
-            toggleMonthInput();
-
-            document.getElementById('formCard').classList.remove('editing');
-            document.getElementById('formTitle').textContent = "Add Subscription";
-            document.getElementById('submitBtn').textContent = "+ Track It";
-            document.getElementById('cancelBtn').classList.add('hidden');
-            render();
-        }
-
-        function deleteSub(id, event) {
-            event.stopPropagation(); // Prevent triggering Edit Mode
-            if(confirm("Delete this subscription?")) {
-                subs = subs.filter(s => s.id !== id);
-                if (editingId === id) resetForm(); // Cancel edit if deleting active item
-                save();
-                render();
-            }
-        }
-        
-        function clearData() {
-            if(confirm("Delete ALL data?")) { subs = []; save(); render(); }
-        }
-        function save() { localStorage.setItem('st_edit_subs', JSON.stringify(subs)); }
-
-        // --- MATH & RENDER ---
-        function getNextDueDate(day, startMonth, cycleMonths) {
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            const currentYear = today.getFullYear();
-
-            // Start check from last year to cover recent past bills
-            let candidate = new Date(currentYear - 1, startMonth, day);
-            candidate.setHours(0,0,0,0);
-
-            while (candidate < today) {
-                candidate.setMonth(candidate.getMonth() + cycleMonths);
-            }
-            
-            const diffDays = Math.round((candidate - today) / (1000 * 60 * 60 * 24));
-            const displayDate = candidate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            return { diffDays, displayDate };
-        }
-
-        function render() {
-            const list = document.getElementById('subList');
-            const totalEl = document.getElementById('totalDisplay');
-            const emptyEl = document.getElementById('emptyMsg');
-            list.innerHTML = '';
-            let monthlyTotal = 0;
-
-            if(subs.length === 0) emptyEl.style.display = 'block'; else emptyEl.style.display = 'none';
-
-            const renderData = subs.map(s => {
-                const info = getNextDueDate(s.day, s.startMonth, s.cycle);
-                monthlyTotal += (s.price / s.cycle);
-                return { ...s, ...info };
-            });
-
-            renderData.sort((a, b) => a.diffDays - b.diffDays);
-
-            renderData.forEach(item => {
-                let urgency = 'safe';
-                let status = `${item.diffDays} days left`;
-                if(item.diffDays === 0) { urgency = 'urgent'; status = 'DUE TODAY'; }
-                else if(item.diffDays === 1) { urgency = 'urgent'; status = 'Tomorrow'; }
-                else if(item.diffDays <= 3) urgency = 'urgent';
-                else if(item.diffDays <= 7) urgency = 'soon';
-
-                let badge = '<span class="cycle-badge badge-mo">Monthly</span>';
-                if(item.cycle === 3) badge = '<span class="cycle-badge badge-qt">Quarterly</span>';
-                if(item.cycle === 12) badge = '<span class="cycle-badge badge-yr">Yearly</span>';
-
-                // Highlight if editing
-                const activeClass = (item.id === editingId) ? 'editing-active' : '';
-
-                const div = document.createElement('div');
-                div.className = `sub-card ${urgency} ${activeClass}`;
-                
-                // Add click handler to EDIT
-                div.onclick = () => editSub(item.id);
-
-                div.innerHTML = `
-                    <div class="sub-info">
-                        <div class="sub-name">${item.name} ${badge}</div>
-                        <div class="sub-date">Next: <strong>${item.displayDate}</strong></div>
-                    </div>
-                    <div class="sub-price">
-                        <div class="price-text">RM ${item.price.toLocaleString()}</div>
-                        <div class="days-left">${status}</div>
-                    </div>
-                    <button class="delete-btn" onclick="deleteSub(${item.id}, event)">×</button>
-                `;
-                list.appendChild(div);
-            });
-
-            totalEl.textContent = "RM " + monthlyTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
-        }
+        const daySelect=document.getElementById('subDay');let editingId=null;
+        function getOrdinal(n){const s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])}
+        for(let i=1;i<=31;i++){let o=document.createElement('option');o.value=i;o.textContent=getOrdinal(i);daySelect.appendChild(o)}
+        function toggleMonthInput(){document.getElementById('subStartMonth').classList.toggle('hidden',document.getElementById('subCycle').value=="1")}
+        let subs=JSON.parse(localStorage.getItem('st_edit_subs'))||[];render();
+        function openBackupModal(){document.getElementById('modalBackup').style.display='flex'}
+        function closeModal(){document.getElementById('modalBackup').style.display='none'}
+        function exportData(){const b=new Blob([JSON.stringify(subs)],{type:"application/json"});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`SubTrack_Backup_${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a)}
+        function importData(){document.getElementById('fileInput').click()}
+        function handleFileSelect(i){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(Array.isArray(d)){subs=d;save();render();closeModal();alert("Restored!")}else alert("Invalid file")}catch(e){alert("Error")}};r.readAsText(f);i.value=''}
+        function hardReset(){if(confirm("Delete all?")){localStorage.clear();location.reload()}}
+        function handleFormSubmit(){const n=document.getElementById('subName').value,p=parseFloat(document.getElementById('subPrice').value),c=parseInt(document.getElementById('subCycle').value),d=parseInt(document.getElementById('subDay').value);let m=parseInt(document.getElementById('subStartMonth').value);if(!n||isNaN(p)||isNaN(d))return alert("Check fields");if(c>1&&isNaN(m))return alert("Select Start Month");if(c===1)m=new Date().getMonth();const x={id:editingId||Date.now(),name:n,price:p,cycle:c,day:d,startMonth:m};if(editingId)subs=subs.map(s=>s.id===editingId?x:s);else subs.push(x);resetForm();save();render()}
+        function editSub(id){const s=subs.find(x=>x.id===id);if(!s)return;editingId=id;document.getElementById('subName').value=s.name;document.getElementById('subPrice').value=s.price;document.getElementById('subCycle').value=s.cycle;document.getElementById('subDay').value=s.day;toggleMonthInput();if(s.cycle>1)document.getElementById('subStartMonth').value=s.startMonth;document.getElementById('formCard').classList.add('editing');document.getElementById('formTitle').textContent="Editing...";document.getElementById('submitBtn').textContent="✓ Update";document.getElementById('cancelBtn').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'});render()}
+        function resetForm(){editingId=null;document.getElementById('subName').value='';document.getElementById('subPrice').value='';document.getElementById('subCycle').value='1';document.getElementById('subDay').value='';document.getElementById('subStartMonth').value='';toggleMonthInput();document.getElementById('formCard').classList.remove('editing');document.getElementById('formTitle').textContent="Add Subscription";document.getElementById('submitBtn').textContent="+ Track It";document.getElementById('cancelBtn').classList.add('hidden');render()}
+        function deleteSub(id,e){e.stopPropagation();if(confirm("Delete?")){subs=subs.filter(s=>s.id!==id);if(editingId===id)resetForm();save();render()}}
+        function save(){localStorage.setItem('st_edit_subs',JSON.stringify(subs))}
+        function getNextDueDate(d,m,c){const t=new Date();t.setHours(0,0,0,0);let x=new Date(t.getFullYear()-1,m,d);x.setHours(0,0,0,0);while(x<t){x.setMonth(x.getMonth()+c)}const diff=Math.round((x-t)/86400000);return{diff,display:x.toLocaleDateString('en-US',{month:'short',day:'numeric'})}}
+        function render(){const l=document.getElementById('subList');l.innerHTML='';let t=0;if(subs.length===0)document.getElementById('emptyMsg').style.display='block';else document.getElementById('emptyMsg').style.display='none';const d=subs.map(s=>{const i=getNextDueDate(s.day,s.startMonth,s.cycle);t+=(s.price/s.cycle);return{...s,...i}});d.sort((a,b)=>a.diff-b.diff);d.forEach(i=>{let u=i.diff<=3?'urgent':(i.diff<=7?'soon':'safe');let s=i.diff===0?'DUE TODAY':(i.diff===1?'Tomorrow':`${i.diff} days left`);let b=i.cycle===1?'Monthly':(i.cycle===3?'Quarterly':'Yearly');let bc=i.cycle===1?'badge-mo':(i.cycle===3?'badge-qt':'badge-yr');const v=document.createElement('div');v.className=`sub-card ${u} ${i.id===editingId?'editing-active':''}`;v.onclick=()=>editSub(i.id);v.innerHTML=`<div class="sub-info"><div class="sub-name">${i.name} <span class="cycle-badge ${bc}">${b}</span></div><div class="sub-date">Next: <strong>${i.display}</strong></div></div><div class="sub-price"><div class="price-text">RM ${i.price.toLocaleString()}</div><div class="days-left">${s}</div></div><button class="delete-btn" onclick="deleteSub(${i.id}, event)">×</button>`;l.appendChild(v)});document.getElementById('totalDisplay').textContent="RM "+t.toLocaleString('en-US',{minimumFractionDigits:2})}
     </script>
 </body>
 </html>
