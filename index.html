@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
     <title>My Toolbox</title>
     <style>
-        :root { --bg: #000000; --card: #1c1c1e; --text: #ffffff; --accent: #0A84FF; }
+        :root { --bg: #000000; --card: #1c1c1e; --text: #ffffff; }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg); color: var(--text); margin: 0; padding: 20px;
             padding-top: max(40px, env(safe-area-inset-top));
+            user-select: none; -webkit-user-select: none;
         }
 
         /* HEADER */
@@ -29,7 +31,7 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* GRID LAYOUT */
+        /* APP GRID */
         .app-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -39,15 +41,15 @@
         /* APP CARD */
         .app-card {
             background: var(--card); border-radius: 20px;
-            padding: 20px; text-decoration: none; color: white;
+            padding: 20px; color: white;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             aspect-ratio: 1 / 1;
-            transition: transform 0.2s, background 0.2s;
+            transition: transform 0.1s, background 0.2s;
             border: 1px solid #333;
+            cursor: pointer;
         }
-        .app-card:active { transform: scale(0.96); background: #2c2c2e; }
+        .app-card:active { transform: scale(0.95); background: #2c2c2e; }
 
-        /* ICONS */
         .icon-box {
             width: 50px; height: 50px; border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
@@ -69,21 +71,13 @@
             background: rgba(0,0,0,0.8); z-index: 200; display: none;
             align-items: center; justify-content: center;
         }
-        .modal { 
-            background: #222; width: 85%; max-width: 350px; padding: 25px; 
-            border-radius: 15px; text-align: center; 
-        }
+        .modal { background: #222; width: 85%; max-width: 350px; padding: 25px; border-radius: 15px; text-align: center; }
         .modal h3 { margin-top: 0; color: #fff; }
         .modal p { color: #aaa; font-size: 13px; line-height: 1.5; margin-bottom: 20px; }
-        
-        .b-btn { 
-            width: 100%; padding: 15px; border-radius: 12px; border: none; 
-            font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 10px;
-        }
+        .b-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 10px; }
         .b-export { background: #0A84FF; color: white; }
         .b-import { background: #30D158; color: black; }
         .b-close { background: transparent; color: #666; margin-top: 10px; }
-
     </style>
 </head>
 <body>
@@ -97,44 +91,41 @@
     </header>
 
     <div class="app-grid">
-        
-        <a href="autolog.html" class="app-card">
+        <div class="app-card" onclick="window.location.href='autolog.html'">
             <div class="icon-box car-bg">🚗</div>
             <div class="app-name">AutoLog</div>
             <div class="app-desc">Car Service</div>
-        </a>
+        </div>
 
-        <a href="tracker.html" class="app-card">
+        <div class="app-card" onclick="window.location.href='tracker.html'">
             <div class="icon-box money-bg">💰</div>
             <div class="app-name">Spending</div>
             <div class="app-desc">Finance</div>
-        </a>
+        </div>
 
-        <a href="subtrack.html" class="app-card">
+        <div class="app-card" onclick="window.location.href='subtrack.html'">
             <div class="icon-box sub-bg">📅</div>
             <div class="app-name">SubTrack</div>
             <div class="app-desc">Bills</div>
-        </a>
+        </div>
 
-        <a href="fairsplit.html" class="app-card">
+        <div class="app-card" onclick="window.location.href='fairsplit.html'">
             <div class="icon-box bill-bg">🧾</div>
             <div class="app-name">FairSplit</div>
             <div class="app-desc">Splitter</div>
-        </a>
+        </div>
 
-        <a href="pricewar.html" class="app-card">
+        <div class="app-card" onclick="window.location.href='pricewar.html'">
             <div class="icon-box shop-bg">⚖️</div>
             <div class="app-name">Price War</div>
             <div class="app-desc">Compare</div>
-        </a>
-
+        </div>
     </div>
 
     <div class="modal-overlay" id="modalBackup">
         <div class="modal">
             <h3>Master Backup</h3>
-            <p>Save data from ALL your apps (AutoLog, Spending, SubTrack, FairSplit) into one file.</p>
-            
+            <p>Save/Restore all apps at once.</p>
             <button class="b-btn b-export" onclick="exportAll()">📤 Save Full Backup</button>
             <button class="b-btn b-import" onclick="importAll()">📥 Restore Full Backup</button>
             <button class="b-btn b-close" onclick="closeBackup()">Close</button>
@@ -143,74 +134,20 @@
     <input type="file" id="fileInput" style="display:none" onchange="handleFileSelect(this)">
 
     <script>
-        // --- MASTER BACKUP LOGIC ---
-        // These are the keys for ALL your apps
-        const KEYS = [
-            'autolog_v2',      // AutoLog
-            'myExpenses',      // SpendTracker (Data)
-            'myCategories',    // SpendTracker (Cats)
-            'st_edit_subs',    // SubTrack
-            'fs_items',        // FairSplit
-            'fs_friends',      // FairSplit
-            'fs_tax',          // FairSplit
-            'fs_svc'           // FairSplit
-        ];
-
-        function openBackup() { document.getElementById('modalBackup').style.display = 'flex'; }
-        function closeBackup() { document.getElementById('modalBackup').style.display = 'none'; }
-
-        function exportAll() {
-            let bundle = {};
-            let count = 0;
-            
-            // Gather data from all keys
-            KEYS.forEach(key => {
-                const val = localStorage.getItem(key);
-                if(val) {
-                    bundle[key] = val; // Store raw string to be safe
-                    count++;
-                }
-            });
-
-            if(count === 0) return alert("No data found in any app to backup!");
-
-            const blob = new Blob([JSON.stringify(bundle)], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url;
-            const date = new Date().toISOString().slice(0,10);
-            a.download = `MyToolbox_FULL_BACKUP_${date}.json`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        const KEYS = ['autolog_v2','myExpenses','myCategories','st_edit_subs','fs_items','fs_friends','fs_tax','fs_svc'];
+        function openBackup(){document.getElementById('modalBackup').style.display='flex'}
+        function closeBackup(){document.getElementById('modalBackup').style.display='none'}
+        function exportAll(){
+            let b={}; KEYS.forEach(k=>{let v=localStorage.getItem(k);if(v)b[k]=v});
+            if(Object.keys(b).length===0) return alert("No data to backup!");
+            let a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(b)],{type:"application/json"}));
+            a.download=`MyToolbox_FULL_${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
-
-        function importAll() { document.getElementById('fileInput').click(); }
-
-        function handleFileSelect(input) {
-            const file = input.files[0]; if(!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const bundle = JSON.parse(e.target.result);
-                    let restoredCount = 0;
-
-                    // Restore keys found in the file
-                    for (const [key, value] of Object.entries(bundle)) {
-                        if(KEYS.includes(key)) {
-                            localStorage.setItem(key, value);
-                            restoredCount++;
-                        }
-                    }
-
-                    if(restoredCount > 0) {
-                        alert(`Success! Restored data for ${restoredCount} items across your apps.`);
-                        closeBackup();
-                    } else {
-                        alert("No valid app data found in this file.");
-                    }
-                } catch(err) {
-                    alert("Error reading file. Make sure it's a valid backup.");
-                }
-            };
-            reader.readAsText(file); input.value = '';
+        function importAll(){document.getElementById('fileInput').click()}
+        function handleFileSelect(i){
+            let f=i.files[0]; if(!f)return; let r=new FileReader();
+            r.onload=e=>{try{let d=JSON.parse(e.target.result); Object.keys(d).forEach(k=>{if(KEYS.includes(k))localStorage.setItem(k,d[k])}); alert("Restored!"); closeBackup();}catch(e){alert("Error")}};
+            r.readAsText(f); i.value='';
         }
     </script>
 </body>
