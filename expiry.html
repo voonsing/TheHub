@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#121212">
+    <title>Expiry Guard</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        :root { 
+            --bg: #121212; --card: #1E1E1E; --text: #E0E0E0; 
+            --accent: #FF9800; /* Orange for alerts */
+            --green: #00E676; --red: #FF5252; --blue: #2979FF;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg); color: var(--text); margin: 0; padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: 100px;
+        }
+
+        /* HEADER */
+        .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header-title h1 { margin: 0; font-size: 24px; }
+        .header-title p { margin: 0; font-size: 12px; color: #888; }
+        .icon-btn { font-size: 22px; cursor: pointer; color: var(--accent); margin-left: 15px; }
+
+        /* SEARCH */
+        .search-bar { width: 100%; padding: 12px; background: #2C2C2C; border: none; border-radius: 10px; color: white; font-size: 16px; margin-bottom: 20px; box-sizing: border-box;}
+
+        /* ITEM CARD */
+        .item-card {
+            background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px;
+            border-left: 5px solid #444; position: relative;
+        }
+        /* Status Colors */
+        .status-safe { border-left-color: var(--green); }
+        .status-warn { border-left-color: var(--accent); background: rgba(255, 152, 0, 0.1); }
+        .status-danger { border-left-color: var(--red); background: rgba(255, 82, 82, 0.1); }
+        .status-expired { border-left-color: #555; opacity: 0.6; }
+
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .item-name { font-size: 18px; font-weight: bold; }
+        .days-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: bold; background: #333; color: #fff; }
+        
+        .card-details { font-size: 13px; color: #aaa; display: flex; flex-direction: column; gap: 4px; }
+        .detail-row { display: flex; align-items: center; gap: 6px; }
+        
+        .age-tag { 
+            display: inline-block; background: #333; color: #4FC3F7; 
+            font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 2px; 
+        }
+
+        .card-actions { 
+            margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; 
+            display: flex; justify-content: flex-end; gap: 10px; 
+        }
+        .act-btn { background: transparent; border: none; color: #666; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .act-edit { color: var(--accent); }
+
+        /* FAB */
+        .fab {
+            position: fixed; bottom: 30px; right: 20px;
+            background: var(--accent); color: black; width: 60px; height: 60px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 32px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 90;
+        }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: center; justify-content: center; }
+        .modal { background: #222; width: 85%; max-width: 350px; padding: 25px; border-radius: 15px; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; background: #333; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; font-size: 16px; -webkit-appearance: none; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-modal { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; }
+        .btn-confirm { background: var(--accent); color: black; } .btn-cancel { background: #444; color: white; }
+
+        .empty-state { text-align: center; color: #555; margin-top: 50px; }
+        .restore-link { color: var(--accent); text-decoration: underline; cursor: pointer; display: block; margin-top: 10px; }
+        
+        /* BACKUP MODAL STYLES */
+        .backup-btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .b-btn { padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .b-export { background: #333; color: var(--blue); border: 1px solid var(--blue); } 
+        .b-import { background: #333; color: var(--green); border: 1px solid var(--green); } 
+        .b-reset { background: #333; color: var(--red); border: 1px solid var(--red); }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-header">
+        <div class="header-title">
+            <h1>Expiry Guard</h1>
+            <p>Assets & Warranties</p>
+        </div>
+        <div style="display:flex;">
+            <div class="icon-btn" onclick="openBackupModal()">☁️</div>
+            <div class="icon-btn" onclick="window.location.href='index.html'">🏠</div>
+        </div>
+    </div>
+
+    <input type="text" class="search-bar" id="searchBox" placeholder="Search items..." onkeyup="renderList()">
+
+    <div id="itemList"></div>
+    <div id="emptyMsg" class="empty-state" style="display:none;">
+        No items yet.<br>Tap + to add one.
+        <span class="restore-link" onclick="openBackupModal()">Restore Backup?</span>
+    </div>
+
+    <div class="fab" onclick="openModal()">+</div>
+
+    <div class="modal-overlay" id="itemModal">
+        <div class="modal">
+            <h3 id="modalTitle">Add Asset</h3>
+            <input type="hidden" id="itemId">
+            
+            <div class="input-group">
+                <label>Item Name</label>
+                <input type="text" id="iName" placeholder="e.g. iPhone 15">
+            </div>
+            
+            <div class="input-group">
+                <label>Category</label>
+                <select id="iCat">
+                    <option value="Electronics">Electronics</option>
+                    <option value="Document">ID / Document</option>
+                    <option value="Vehicle">Vehicle</option>
+                    <option value="Home">Home / Appliance</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Purchase Date (Optional)</label>
+                <input type="date" id="iBought">
+            </div>
+
+            <div class="input-group">
+                <label>Expiry / Warranty End Date</label>
+                <input type="date" id="iExpire">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeModals()">Cancel</button>
+                <button class="btn-modal btn-confirm" onclick="saveItem()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalBackup">
+        <div class="modal">
+            <h3>Backup & Restore</h3>
+            <p style="color:#888; font-size:12px;">Save data to Files app.</p>
+            <div class="backup-btn-row">
+                <button class="b-btn b-export" onclick="exportData()">📤 Save to iCloud/Files</button>
+                <button class="b-btn b-import" onclick="importData()">📥 Load from iCloud/Files</button>
+                <button class="b-btn b-reset" onclick="hardReset()">🗑 Erase All Data</button>
+            </div>
+            <button onclick="closeModals()" style="margin-top:15px; width:100%; background:transparent; color:#666; border:none;">Close</button>
+        </div>
+    </div>
+    <input type="file" id="fileInput" style="display:none" onchange="handleFileSelect(this)">
+
+    <script>
+        let items = JSON.parse(localStorage.getItem('expiry_data')) || [];
+        
+        // Initial Render
+        renderList();
+
+        // --- CORE FUNCTIONS ---
+        function saveItem() {
+            const id = document.getElementById('itemId').value;
+            const name = document.getElementById('iName').value;
+            const cat = document.getElementById('iCat').value;
+            const bought = document.getElementById('iBought').value;
+            const expire = document.getElementById('iExpire').value;
+
+            if(!name || !expire) return alert("Name and Expiry Date are required!");
+
+            const newItem = {
+                id: id ? parseInt(id) : Date.now(),
+                name, cat, bought, expire
+            };
+
+            if(id) {
+                const idx = items.findIndex(i => i.id == id);
+                items[idx] = newItem;
+            } else {
+                items.push(newItem);
+            }
+
+            saveData();
+            closeModals();
+            renderList();
+        }
+
+        function deleteItem(id) {
+            if(confirm("Delete this item?")) {
+                items = items.filter(i => i.id !== id);
+                saveData();
+                renderList();
+            }
+        }
+
+        function editItem(id) {
+            const item = items.find(i => i.id === id);
+            document.getElementById('modalTitle').textContent = "Edit Asset";
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('iName').value = item.name;
+            document.getElementById('iCat').value = item.cat;
+            document.getElementById('iBought').value = item.bought;
+            document.getElementById('iExpire').value = item.expire;
+            document.getElementById('itemModal').style.display = 'flex';
+        }
+
+        // --- RENDER LOGIC ---
+        function renderList() {
+            const list = document.getElementById('itemList');
+            const search = document.getElementById('searchBox').value.toLowerCase();
+            list.innerHTML = '';
+
+            const filtered = items.filter(i => i.name.toLowerCase().includes(search));
+
+            if(filtered.length === 0) {
+                document.getElementById('emptyMsg').style.display = 'block';
+            } else {
+                document.getElementById('emptyMsg').style.display = 'none';
+                
+                // Sort by Expiry Date (Soonest first)
+                filtered.sort((a,b) => new Date(a.expire) - new Date(b.expire));
+
+                filtered.forEach(item => {
+                    // Calc Expiry Status
+                    const daysLeft = getDaysLeft(item.expire);
+                    let statusClass = 'status-safe';
+                    let badgeText = `${daysLeft} days left`;
+                    
+                    if(daysLeft < 0) { statusClass = 'status-expired'; badgeText = "EXPIRED"; }
+                    else if(daysLeft <= 30) { statusClass = 'status-danger'; }
+                    else if(daysLeft <= 90) { statusClass = 'status-warn'; }
+
+                    // Calc Age (if bought date exists)
+                    let ageHtml = '';
+                    if(item.bought) {
+                        ageHtml = `<span class="age-tag">Device Age: ${getAgeString(item.bought)}</span>`;
+                    }
+
+                    const div = document.createElement('div');
+                    div.className = `item-card ${statusClass}`;
+                    div.innerHTML = `
+                        <div class="card-top">
+                            <div class="item-name">${item.name}</div>
+                            <div class="days-badge">${badgeText}</div>
+                        </div>
+                        <div class="card-details">
+                            <div class="detail-row">📁 ${item.cat}</div>
+                            <div class="detail-row">📅 Expiry: ${formatDate(item.expire)}</div>
+                            ${item.bought ? `<div class="detail-row">🛒 Bought: ${formatDate(item.bought)}</div>` : ''}
+                            ${ageHtml}
+                        </div>
+                        <div class="card-actions">
+                            <button class="act-btn" onclick="deleteItem(${item.id})">Delete</button>
+                            <button class="act-btn act-edit" onclick="editItem(${item.id})">Edit</button>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+        }
+
+        // --- UTILS ---
+        function getDaysLeft(dateStr) {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const target = new Date(dateStr); target.setHours(0,0,0,0);
+            return Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+        }
+
+        function getAgeString(dateStr) {
+            const today = new Date();
+            const bought = new Date(dateStr);
+            let years = today.getFullYear() - bought.getFullYear();
+            let months = today.getMonth() - bought.getMonth();
+            if (months < 0) { years--; months += 12; }
+            if (years > 0) return `${years}y ${months}m`;
+            return `${months} months`;
+        }
+
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+        }
+
+        function saveData() { localStorage.setItem('expiry_data', JSON.stringify(items)); }
+        
+        // --- MODALS & BACKUP ---
+        function openModal() { 
+            document.getElementById('itemId').value = '';
+            document.getElementById('iName').value = '';
+            document.getElementById('iBought').value = '';
+            document.getElementById('iExpire').value = '';
+            document.getElementById('modalTitle').textContent = "Add Asset";
+            document.getElementById('itemModal').style.display = 'flex'; 
+        }
+        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(e => e.style.display='none'); }
+        function openBackupModal() { document.getElementById('modalBackup').style.display='flex'; }
+        
+        function exportData(){
+            const b=new Blob([JSON.stringify(items)],{type:"application/json"});
+            const u=URL.createObjectURL(b); const a=document.createElement('a');
+            a.href=u; a.download=`Expiry_Backup_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+        function importData(){ document.getElementById('fileInput').click(); }
+        function handleFileSelect(i){
+            const f=i.files[0]; if(!f)return; const r=new FileReader();
+            r.onload=e=>{
+                try{ items=JSON.parse(e.target.result); saveData(); renderList(); closeModals(); alert("Restored!"); }
+                catch(x){ alert("Error reading file."); }
+            }; r.readAsText(f); i.value='';
+        }
+        function hardReset(){ if(confirm("Delete all items?")){ localStorage.removeItem('expiry_data'); location.reload(); } }
+
+    </script>
+</body>
+</html>
