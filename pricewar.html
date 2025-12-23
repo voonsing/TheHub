@@ -8,25 +8,102 @@
     <title>Price War</title>
     <link rel="manifest" href="manifest.json">
     <style>
-        :root { --bg: #121212; --card: #1E1E1E; --text: #fff; --green: #00E676; --red: #FF5252; --blue: #2979FF; --gray: #333; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: max(40px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; min-height: 100vh; }
+        :root {
+            --bg: #121212; --card: #1E1E1E; --text: #fff;
+            --green: #00E676; --red: #FF5252; --blue: #2979FF;
+            --gray: #333; --accent: #FF9800;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg); color: var(--text); margin: 0; padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(40px, env(safe-area-inset-bottom));
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+
+        /* HEADER */
         .header { text-align: center; margin-bottom: 20px; position: relative; }
-        .header h1 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -1px; background: linear-gradient(to right, #2979FF, #00E676); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header h1 { 
+            margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -1px;
+            background: linear-gradient(to right, #2979FF, #00E676);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
         .subtitle { font-size: 13px; color: #888; margin-top: 5px; }
-        .battle-arena { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .item-card { background: var(--card); border-radius: 16px; padding: 15px; border: 2px solid transparent; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); position: relative; overflow: hidden; }
+
+        /* THE BATTLEFIELD */
+        .battle-arena {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* ITEM CARDS */
+        .item-card {
+            background: var(--card); border-radius: 16px; padding: 15px;
+            border: 2px solid transparent; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative; overflow: hidden;
+        }
         .card-title { font-size: 12px; font-weight: bold; text-transform: uppercase; color: #666; margin-bottom: 10px; text-align: center; letter-spacing: 1px;}
+        
         .input-group { margin-bottom: 12px; }
         .input-label { font-size: 10px; color: #888; margin-bottom: 4px; display: block; }
-        input { width: 100%; background: #2C2C2C; border: none; color: white; padding: 12px; border-radius: 8px; font-size: 18px; font-weight: bold; text-align: center; box-sizing: border-box; -webkit-appearance: none; }
-        input:focus { outline: 2px solid var(--blue); background: #333; } input::placeholder { opacity: 0.3; }
-        .item-card.winner { border-color: var(--green); background: rgba(0, 230, 118, 0.1); transform: scale(1.02); box-shadow: 0 10px 20px rgba(0, 230, 118, 0.2); z-index: 10; }
+        
+        input {
+            width: 100%; background: #2C2C2C; border: none; color: white;
+            padding: 12px; border-radius: 8px; font-size: 18px; font-weight: bold; text-align: center;
+            box-sizing: border-box; -webkit-appearance: none;
+        }
+        input:focus { outline: 2px solid var(--blue); background: #333; }
+        input::placeholder { opacity: 0.3; }
+
+        /* WINNER/LOSER STYLES */
+        .item-card.winner {
+            border-color: var(--green);
+            background: rgba(0, 230, 118, 0.1);
+            transform: scale(1.02); box-shadow: 0 10px 20px rgba(0, 230, 118, 0.2); z-index: 10;
+        }
         .item-card.loser { border-color: var(--red); opacity: 0.6; transform: scale(0.98); }
-        .result-bar { background: var(--card); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; border: 1px solid #333; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .result-title { font-size: 14px; color: #888; margin-bottom: 5px; } .result-value { font-size: 24px; font-weight: bold; color: white; }
-        .save-badge { background: var(--green); color: black; font-weight: bold; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin-left: 8px; vertical-align: middle; display: none; }
-        .unit-price { font-size: 11px; color: #aaa; text-align: center; margin-top: 10px; font-family: monospace; } .winner .unit-price { color: var(--green); font-weight: bold; }
-        .reset-btn { background: #333; color: white; border: none; padding: 15px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; width: 100%; margin-top: auto; }
+
+        /* RESULT BADGE */
+        .result-bar {
+            background: var(--card); border-radius: 12px; padding: 20px;
+            text-align: center; margin-bottom: 20px;
+            border: 1px solid #333; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .result-title { font-size: 14px; color: #888; margin-bottom: 5px; }
+        .result-value { font-size: 24px; font-weight: bold; color: white; }
+        .save-badge {
+            background: var(--green); color: black; font-weight: bold; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin-left: 8px; vertical-align: middle; display: none;
+        }
+
+        /* UNIT PRICE DISPLAY */
+        .unit-price { font-size: 11px; color: #aaa; text-align: center; margin-top: 10px; font-family: monospace; }
+        .winner .unit-price { color: var(--green); font-weight: bold; }
+
+        /* --- CONVERTER SECTION --- */
+        .converter-box {
+            background: #252525; border-radius: 16px; padding: 15px;
+            margin-bottom: 20px; border: 1px solid #444;
+        }
+        .conv-header { font-size: 12px; color: var(--accent); font-weight: bold; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; text-align: center; }
+        
+        .conv-row { display: flex; gap: 10px; align-items: center; }
+        .conv-input { flex: 2; }
+        .conv-select { 
+            flex: 1; background: #333; color: white; border: 1px solid #555; 
+            border-radius: 8px; padding: 10px; font-size: 14px; -webkit-appearance: none; text-align: center;
+        }
+        .conv-result { 
+            text-align: center; margin-top: 10px; font-size: 18px; font-weight: bold; color: var(--accent); 
+            background: rgba(255, 152, 0, 0.1); padding: 8px; border-radius: 8px;
+        }
+
+        /* RESET BUTTON */
+        .reset-btn {
+            background: #333; color: white; border: none; padding: 15px;
+            border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer;
+            width: 100%; margin-top: auto;
+        }
         .reset-btn:active { transform: scale(0.95); }
     </style>
 </head>
@@ -47,23 +124,94 @@
         <div class="item-card" id="cardA">
             <div class="card-title">Item A</div>
             <div class="input-group"><label class="input-label">Price (RM)</label><input type="number" id="priceA" placeholder="0.00" inputmode="decimal" oninput="calculate()"></div>
-            <div class="input-group"><label class="input-label">Size/Qty (g, ml, pcs)</label><input type="number" id="unitA" placeholder="1000" inputmode="decimal" oninput="calculate()"></div>
+            <div class="input-group"><label class="input-label">Size/Qty</label><input type="number" id="unitA" placeholder="1000" inputmode="decimal" oninput="calculate()"></div>
             <div class="unit-price" id="scoreA">---</div>
         </div>
         <div class="item-card" id="cardB">
             <div class="card-title">Item B</div>
             <div class="input-group"><label class="input-label">Price (RM)</label><input type="number" id="priceB" placeholder="0.00" inputmode="decimal" oninput="calculate()"></div>
-            <div class="input-group"><label class="input-label">Size/Qty (g, ml, pcs)</label><input type="number" id="unitB" placeholder="850" inputmode="decimal" oninput="calculate()"></div>
+            <div class="input-group"><label class="input-label">Size/Qty</label><input type="number" id="unitB" placeholder="850" inputmode="decimal" oninput="calculate()"></div>
             <div class="unit-price" id="scoreB">---</div>
+        </div>
+    </div>
+
+    <div class="converter-box">
+        <div class="conv-header">Quick Converter</div>
+        <div class="conv-row">
+            <input type="number" id="convInput" class="conv-input" placeholder="Value" oninput="convert()">
+            <select id="convFrom" class="conv-select" onchange="convert()">
+                <option value="g">g</option>
+                <option value="kg">kg</option>
+                <option value="lb">lb</option>
+                <option value="oz">oz</option>
+                <option value="mg">mg</option>
+                <option disabled>---</option>
+                <option value="ml">ml</option>
+                <option value="l">L</option>
+                <option value="floz">fl oz</option>
+                <option value="pt">pt</option>
+                <option value="qt">qt</option>
+                <option value="gal">gal</option>
+                <option disabled>---</option>
+                <option value="cm">cm</option>
+                <option value="m">m</option>
+                <option value="mm">mm</option>
+                <option value="in">in</option>
+                <option value="ft">ft</option>
+                <option value="yd">yd</option>
+            </select>
+        </div>
+        <div style="text-align:center; font-size:12px; color:#666; margin:5px 0;">⬇️ converts to ⬇️</div>
+        <div class="conv-row">
+            <div id="convResult" class="conv-input conv-result">---</div>
+            <select id="convTo" class="conv-select" onchange="convert()">
+                <option value="kg">kg</option>
+                <option value="g">g</option>
+                <option value="lb">lb</option>
+                <option value="oz">oz</option>
+                <option value="mg">mg</option>
+                <option disabled>---</option>
+                <option value="l">L</option>
+                <option value="ml">ml</option>
+                <option value="floz">fl oz</option>
+                <option value="pt">pt</option>
+                <option value="qt">qt</option>
+                <option value="gal">gal</option>
+                <option disabled>---</option>
+                <option value="in">in</option>
+                <option value="cm">cm</option>
+                <option value="m">m</option>
+                <option value="mm">mm</option>
+                <option value="ft">ft</option>
+                <option value="yd">yd</option>
+            </select>
         </div>
     </div>
 
     <button class="reset-btn" onclick="resetAll()">↻ Clear All</button>
 
     <script>
+        // --- AUTO-SAVE LOGIC ---
+        window.onload = function() {
+            if(localStorage.getItem('pw_priceA')) document.getElementById('priceA').value = localStorage.getItem('pw_priceA');
+            if(localStorage.getItem('pw_unitA')) document.getElementById('unitA').value = localStorage.getItem('pw_unitA');
+            if(localStorage.getItem('pw_priceB')) document.getElementById('priceB').value = localStorage.getItem('pw_priceB');
+            if(localStorage.getItem('pw_unitB')) document.getElementById('unitB').value = localStorage.getItem('pw_unitB');
+            calculate();
+        }
+
+        // --- CALCULATOR ---
         function calculate() {
-            const priceA = parseFloat(document.getElementById('priceA').value); const unitA = parseFloat(document.getElementById('unitA').value);
-            const priceB = parseFloat(document.getElementById('priceB').value); const unitB = parseFloat(document.getElementById('unitB').value);
+            const priceA = parseFloat(document.getElementById('priceA').value);
+            const unitA = parseFloat(document.getElementById('unitA').value);
+            const priceB = parseFloat(document.getElementById('priceB').value);
+            const unitB = parseFloat(document.getElementById('unitB').value);
+
+            localStorage.setItem('pw_priceA', document.getElementById('priceA').value);
+            localStorage.setItem('pw_unitA', document.getElementById('unitA').value);
+            localStorage.setItem('pw_priceB', document.getElementById('priceB').value);
+            localStorage.setItem('pw_unitB', document.getElementById('unitB').value);
+
             const cardA = document.getElementById('cardA'); const cardB = document.getElementById('cardB');
             const resultTitle = document.querySelector('.result-title'); const resultValue = document.querySelector('.result-value');
             const scoreAEl = document.getElementById('scoreA'); const scoreBEl = document.getElementById('scoreB');
@@ -81,14 +229,72 @@
                 else { resultTitle.textContent = "Result"; resultValue.innerHTML = "It's a Tie! <span style='font-size:16px'>🤝</span>"; }
             } else { resultTitle.textContent = "Status"; resultValue.textContent = "Enter details..."; }
         }
+
         function declareWinner(wCard, lCard, wScore, lScore, wName) {
             wCard.classList.add('winner'); lCard.classList.add('loser');
             const diff = lScore - wScore; const percent = ((diff / lScore) * 100).toFixed(1);
             document.querySelector('.result-title').textContent = "Winner";
             document.querySelector('.result-value').innerHTML = `${wName} Wins! <span class="save-badge" style="display:inline-block">SAVE ${percent}%</span>`;
         }
-        function resetAll() { document.querySelectorAll('input').forEach(i => i.value = ''); calculate(); }
+
+        function resetAll() {
+            document.querySelectorAll('input').forEach(i => i.value = '');
+            localStorage.clear();
+            calculate();
+            document.getElementById('convResult').textContent = "---";
+        }
+
+        // --- FULL CONVERTER LOGIC ---
+        const rates = {
+            // Weight (Base: g)
+            g: 1, kg: 1000, lb: 453.592, oz: 28.3495, mg: 0.001,
+            // Volume (Base: ml)
+            ml: 1, l: 1000, floz: 29.5735, pt: 473.176, qt: 946.353, gal: 3785.41,
+            // Length (Base: m)
+            m: 1, cm: 0.01, mm: 0.001, in: 0.0254, ft: 0.3048, yd: 0.9144
+        };
+
+        const categories = {
+            weight: ['g','kg','lb','oz','mg'],
+            volume: ['ml','l','floz','pt','qt','gal'],
+            length: ['m','cm','mm','in','ft','yd']
+        };
+
+        function getCategory(unit) {
+            if(categories.weight.includes(unit)) return 'weight';
+            if(categories.volume.includes(unit)) return 'volume';
+            if(categories.length.includes(unit)) return 'length';
+            return null;
+        }
+
+        function convert() {
+            const val = parseFloat(document.getElementById('convInput').value);
+            const from = document.getElementById('convFrom').value;
+            const to = document.getElementById('convTo').value;
+            const resEl = document.getElementById('convResult');
+
+            if (isNaN(val)) { resEl.textContent = "---"; return; }
+
+            const catFrom = getCategory(from);
+            const catTo = getCategory(to);
+
+            if (catFrom !== catTo) {
+                resEl.textContent = "N/A"; // Mismatch (e.g. kg -> meter)
+                return;
+            }
+
+            // Convert
+            const baseValue = val * rates[from];
+            const finalValue = baseValue / rates[to];
+
+            // Formatting
+            let decimals = 2;
+            if (finalValue < 0.001) decimals = 6;
+            else if (finalValue < 0.1) decimals = 4;
+            else if (finalValue < 10) decimals = 3;
+
+            resEl.textContent = finalValue.toFixed(decimals) + " " + to;
+        }
     </script>
 </body>
 </html>
-
