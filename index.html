@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <title>My Toolbox</title>
+    <style>
+        :root { --bg: #000000; --card: #1c1c1e; --text: #ffffff; --accent: #0A84FF; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg); color: var(--text); margin: 0; padding: 20px;
+            padding-top: max(40px, env(safe-area-inset-top));
+        }
+
+        /* HEADER */
+        header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 30px; padding: 0 10px; 
+        }
+        .title-block h1 { margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.5px; }
+        .title-block p { color: #888; margin: 5px 0 0 0; font-size: 14px; }
+        
+        .backup-btn {
+            font-size: 24px; cursor: pointer; padding: 10px; 
+            background: #333; border-radius: 50%; width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* GRID LAYOUT */
+        .app-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* APP CARD */
+        .app-card {
+            background: var(--card); border-radius: 20px;
+            padding: 20px; text-decoration: none; color: white;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            aspect-ratio: 1 / 1;
+            transition: transform 0.2s, background 0.2s;
+            border: 1px solid #333;
+        }
+        .app-card:active { transform: scale(0.96); background: #2c2c2e; }
+
+        /* ICONS */
+        .icon-box {
+            width: 50px; height: 50px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; margin-bottom: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .car-bg { background: linear-gradient(135deg, #4FC3F7, #0288D1); }
+        .bill-bg { background: linear-gradient(135deg, #BB86FC, #6200EE); }
+        .sub-bg { background: linear-gradient(135deg, #03DAC6, #018786); }
+        .money-bg { background: linear-gradient(135deg, #FFD54F, #F57F17); }
+        .shop-bg { background: linear-gradient(135deg, #FF5252, #D32F2F); }
+
+        .app-name { font-weight: 600; font-size: 15px; text-align: center; }
+        .app-desc { font-size: 11px; color: #888; margin-top: 4px; text-align: center; }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 200; display: none;
+            align-items: center; justify-content: center;
+        }
+        .modal { 
+            background: #222; width: 85%; max-width: 350px; padding: 25px; 
+            border-radius: 15px; text-align: center; 
+        }
+        .modal h3 { margin-top: 0; color: #fff; }
+        .modal p { color: #aaa; font-size: 13px; line-height: 1.5; margin-bottom: 20px; }
+        
+        .b-btn { 
+            width: 100%; padding: 15px; border-radius: 12px; border: none; 
+            font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 10px;
+        }
+        .b-export { background: #0A84FF; color: white; }
+        .b-import { background: #30D158; color: black; }
+        .b-close { background: transparent; color: #666; margin-top: 10px; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="title-block">
+            <h1>My Apps</h1>
+            <p>Utilities & Tools</p>
+        </div>
+        <div class="backup-btn" onclick="openBackup()">☁️</div>
+    </header>
+
+    <div class="app-grid">
+        
+        <a href="autolog.html" class="app-card">
+            <div class="icon-box car-bg">🚗</div>
+            <div class="app-name">AutoLog</div>
+            <div class="app-desc">Car Service</div>
+        </a>
+
+        <a href="tracker.html" class="app-card">
+            <div class="icon-box money-bg">💰</div>
+            <div class="app-name">Spending</div>
+            <div class="app-desc">Finance</div>
+        </a>
+
+        <a href="subtrack.html" class="app-card">
+            <div class="icon-box sub-bg">📅</div>
+            <div class="app-name">SubTrack</div>
+            <div class="app-desc">Bills</div>
+        </a>
+
+        <a href="fairsplit.html" class="app-card">
+            <div class="icon-box bill-bg">🧾</div>
+            <div class="app-name">FairSplit</div>
+            <div class="app-desc">Splitter</div>
+        </a>
+
+        <a href="pricewar.html" class="app-card">
+            <div class="icon-box shop-bg">⚖️</div>
+            <div class="app-name">Price War</div>
+            <div class="app-desc">Compare</div>
+        </a>
+
+    </div>
+
+    <div class="modal-overlay" id="modalBackup">
+        <div class="modal">
+            <h3>Master Backup</h3>
+            <p>Save data from ALL your apps (AutoLog, Spending, SubTrack, FairSplit) into one file.</p>
+            
+            <button class="b-btn b-export" onclick="exportAll()">📤 Save Full Backup</button>
+            <button class="b-btn b-import" onclick="importAll()">📥 Restore Full Backup</button>
+            <button class="b-btn b-close" onclick="closeBackup()">Close</button>
+        </div>
+    </div>
+    <input type="file" id="fileInput" style="display:none" onchange="handleFileSelect(this)">
+
+    <script>
+        // --- MASTER BACKUP LOGIC ---
+        // These are the keys for ALL your apps
+        const KEYS = [
+            'autolog_v2',      // AutoLog
+            'myExpenses',      // SpendTracker (Data)
+            'myCategories',    // SpendTracker (Cats)
+            'st_edit_subs',    // SubTrack
+            'fs_items',        // FairSplit
+            'fs_friends',      // FairSplit
+            'fs_tax',          // FairSplit
+            'fs_svc'           // FairSplit
+        ];
+
+        function openBackup() { document.getElementById('modalBackup').style.display = 'flex'; }
+        function closeBackup() { document.getElementById('modalBackup').style.display = 'none'; }
+
+        function exportAll() {
+            let bundle = {};
+            let count = 0;
+            
+            // Gather data from all keys
+            KEYS.forEach(key => {
+                const val = localStorage.getItem(key);
+                if(val) {
+                    bundle[key] = val; // Store raw string to be safe
+                    count++;
+                }
+            });
+
+            if(count === 0) return alert("No data found in any app to backup!");
+
+            const blob = new Blob([JSON.stringify(bundle)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url;
+            const date = new Date().toISOString().slice(0,10);
+            a.download = `MyToolbox_FULL_BACKUP_${date}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function importAll() { document.getElementById('fileInput').click(); }
+
+        function handleFileSelect(input) {
+            const file = input.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const bundle = JSON.parse(e.target.result);
+                    let restoredCount = 0;
+
+                    // Restore keys found in the file
+                    for (const [key, value] of Object.entries(bundle)) {
+                        if(KEYS.includes(key)) {
+                            localStorage.setItem(key, value);
+                            restoredCount++;
+                        }
+                    }
+
+                    if(restoredCount > 0) {
+                        alert(`Success! Restored data for ${restoredCount} items across your apps.`);
+                        closeBackup();
+                    } else {
+                        alert("No valid app data found in this file.");
+                    }
+                } catch(err) {
+                    alert("Error reading file. Make sure it's a valid backup.");
+                }
+            };
+            reader.readAsText(file); input.value = '';
+        }
+    </script>
+</body>
+</html>

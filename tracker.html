@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f2f2f7">
+
+    <title>SpendTracker v8</title>
+    <style>
+        /* CSS: Variables */
+        :root { --primary: #007AFF; --bg: #f2f2f7; --card: #ffffff; --danger: #ff3b30; --edit: #FF9500; --purple: #5856d6; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg); margin: 0; padding: 20px; color: #333;
+            -webkit-tap-highlight-color: transparent;
+            /* Safe area adjustments */
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(80px, env(safe-area-inset-bottom));
+        }
+
+        h1 { text-align: center; font-size: 24px; margin-bottom: 20px; margin-top: 0; grid-column: 1 / -1; }
+
+        /* MAIN LAYOUT CONTAINER */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 600px; /* Default max width for mobile feel on desktop */
+            margin: 0 auto;
+        }
+
+        /* PC / TABLET LAYOUT (The "Left & Right" Switch) */
+        @media (min-width: 768px) {
+            .app-container {
+                display: grid;
+                grid-template-columns: 350px 1fr; /* Fixed Input width, Flexible List width */
+                max-width: 1200px;
+                align-items: start;
+            }
+            /* Hide the bottom export button on PC, we can put it in the sidebar */
+            .mobile-only-btn { display: none; }
+            .desktop-btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px;}
+        }
+        
+        /* CARD STYLING */
+        .card { background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        
+        /* INPUT STYLES */
+        input, select, button {
+            width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px;
+            border: 1px solid #ddd; font-size: 16px; box-sizing: border-box;
+            appearance: none; -webkit-appearance: none;
+        }
+        input[type="date"] { display: block; font-family: inherit; }
+
+        /* COMPACT ROW (Date & Amount Side-by-Side) */
+        .row-compact { display: flex; gap: 10px; }
+        .row-compact input { flex: 1; } /* Each takes 50% width */
+
+        /* BUTTONS */
+        button { background-color: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:active { opacity: 0.8; }
+        
+        /* Category Group */
+        .cat-group { display: flex; gap: 8px; margin-bottom: 12px; }
+        #category { margin-bottom: 0; flex-grow: 1; }
+        .cat-btn { width: auto; margin-bottom: 0; padding: 0 15px; font-size: 20px; line-height: 1; }
+        .add-cat-btn { background-color: var(--purple); }
+        .del-cat-btn { background-color: var(--danger); }
+
+        /* States */
+        #addBtn.update-mode { background-color: var(--edit); }
+        #cancelBtn { background-color: #8e8e93; display: none; margin-top: -10px; }
+
+        /* LIST SECTION */
+        .list-section { display: flex; flex-direction: column; }
+        .filter-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        #monthFilter { width: auto; margin-bottom: 0; padding: 8px; font-weight: bold; color: var(--primary); border-color: var(--primary); }
+        .total-box { font-size: 20px; font-weight: bold; text-align: right; }
+
+        ul { list-style: none; padding: 0; margin: 0; }
+        li {
+            background: var(--card); border-radius: 10px; padding: 12px; margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .expense-info { display: flex; flex-direction: column; }
+        .expense-cat { font-size: 12px; color: #888; margin-top: 4px; }
+        
+        .actions { display: flex; gap: 8px; align-items: center; }
+        .list-btn { width: auto; padding: 6px 12px; font-size: 14px; margin: 0; border-radius: 6px; }
+        .edit-btn { background: var(--edit); color: white; }
+        .del-btn { background: var(--danger); color: white; }
+
+        /* Bottom Buttons (Mobile) */
+        .btn-group-bottom { margin-top: 20px; }
+        .btn-secondary { background-color: #34c759; margin-top: 0; }
+        
+        /* Desktop Button Group (Hidden on Mobile) */
+        .desktop-btn-group { display: none; }
+        @media (min-width: 768px) {
+            .desktop-btn-group { display: block; }
+            .btn-group-bottom { display: none; } /* Hide bottom export on desktop */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h1>💰 My Spending</h1>
+
+        <div class="card">
+            
+            <div class="row-compact">
+                <input type="date" id="datePicker">
+                <input type="number" id="amount" placeholder="RM 0.00" pattern="[0-9]*" inputmode="decimal">
+            </div>
+
+            <input type="text" id="desc" placeholder="What did you buy?" autocomplete="off">
+            
+            <div class="cat-group">
+                <select id="category"></select>
+                <button class="cat-btn add-cat-btn" onclick="addNewCategory()">+</button>
+                <button class="cat-btn del-cat-btn" onclick="deleteCategory()">-</button>
+            </div>
+
+            <button id="addBtn" onclick="handleFormSubmit()">Add Expense</button>
+            <button id="cancelBtn" onclick="cancelEdit()">Cancel Edit</button>
+
+            <div class="desktop-btn-group">
+                <button class="btn-secondary" onclick="exportToCSV()">📂 Export CSV</button>
+            </div>
+        </div>
+
+        <div class="list-section">
+            <div class="filter-section">
+                <select id="monthFilter" onchange="render()">
+                    <option value="all">All Time</option>
+                </select>
+                <div class="total-box">Total: RM <span id="totalDisplay">0.00</span></div>
+            </div>
+
+            <ul id="expenseList"></ul>
+            
+            <div class="btn-group-bottom">
+                <button class="btn-secondary" onclick="exportToCSV()">📂 Export CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA LOADING ---
+        let expenses = JSON.parse(localStorage.getItem('myExpenses')) || [];
+        let categories = JSON.parse(localStorage.getItem('myCategories')) || ['Food', 'Transport', 'Shopping', 'Bills'];
+        let editingId = null; 
+
+        // Initial Setup
+        document.getElementById('datePicker').valueAsDate = new Date();
+        renderCategories();
+        updateMonthDropdown();
+        render();
+
+        // --- CATEGORY LOGIC ---
+        function renderCategories() {
+            const select = document.getElementById('category');
+            const currentVal = select.value; 
+            select.innerHTML = ''; 
+
+            if (categories.length === 0) categories = ['General'];
+
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                select.appendChild(option);
+            });
+
+            if (categories.includes(currentVal)) select.value = currentVal;
+            else select.value = categories[0];
+        }
+
+        function addNewCategory() {
+            const newCat = prompt("Enter new category name:");
+            if (newCat && newCat.trim() !== "") {
+                const cleanCat = newCat.trim();
+                if (!categories.includes(cleanCat)) {
+                    categories.push(cleanCat);
+                    localStorage.setItem('myCategories', JSON.stringify(categories));
+                    renderCategories();
+                    document.getElementById('category').value = cleanCat;
+                } else {
+                    alert("Category already exists!");
+                }
+            }
+        }
+
+        function deleteCategory() {
+            const select = document.getElementById('category');
+            const selectedCat = select.value;
+
+            if (categories.length <= 1) {
+                alert("You must have at least one category!");
+                return;
+            }
+
+            if (confirm(`Delete category "${selectedCat}"?`)) {
+                categories = categories.filter(c => c !== selectedCat);
+                localStorage.setItem('myCategories', JSON.stringify(categories));
+                renderCategories();
+            }
+        }
+
+        // --- EXPENSE LOGIC ---
+        function handleFormSubmit() {
+            const dateInput = document.getElementById('datePicker');
+            const descInput = document.getElementById('desc');
+            const amountInput = document.getElementById('amount');
+            const catInput = document.getElementById('category');
+
+            const desc = descInput.value;
+            const amount = parseFloat(amountInput.value);
+            const category = catInput.value;
+            const dateVal = dateInput.value;
+
+            if (desc === '' || isNaN(amount) || dateVal === '') {
+                alert("Please fill in all fields!");
+                return;
+            }
+
+            if (editingId) {
+                const index = expenses.findIndex(e => e.id === editingId);
+                if (index !== -1) {
+                    expenses[index].desc = desc;
+                    expenses[index].amount = amount;
+                    expenses[index].category = category;
+                    expenses[index].isoDate = new Date(dateVal).toISOString();
+                }
+                editingId = null;
+                resetFormUI();
+            } else {
+                const expense = {
+                    id: Date.now(),
+                    desc: desc,
+                    amount: amount,
+                    category: category,
+                    isoDate: new Date(dateVal).toISOString()
+                };
+                expenses.unshift(expense);
+            }
+
+            saveData();
+            
+            descInput.value = '';
+            amountInput.value = '';
+            dateInput.valueAsDate = new Date();
+            descInput.focus();
+            updateMonthDropdown();
+        }
+
+        function editExpense(id) {
+            const item = expenses.find(e => e.id === id);
+            if (!item) return;
+
+            document.getElementById('desc').value = item.desc;
+            document.getElementById('amount').value = item.amount;
+            
+            if (!categories.includes(item.category)) {
+                const select = document.getElementById('category');
+                const opt = document.createElement('option');
+                opt.value = item.category;
+                opt.textContent = item.category + " (Deleted)";
+                select.appendChild(opt);
+            }
+            document.getElementById('category').value = item.category;
+            
+            const dateObj = new Date(item.isoDate || item.id);
+            document.getElementById('datePicker').value = dateObj.toISOString().split('T')[0];
+
+            editingId = id;
+            const btn = document.getElementById('addBtn');
+            btn.textContent = "Update Expense";
+            btn.classList.add('update-mode');
+            document.getElementById('cancelBtn').style.display = 'block';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            editingId = null;
+            document.getElementById('desc').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('datePicker').valueAsDate = new Date();
+            renderCategories();
+            resetFormUI();
+        }
+
+        function resetFormUI() {
+            const btn = document.getElementById('addBtn');
+            btn.textContent = "Add Expense";
+            btn.classList.remove('update-mode');
+            document.getElementById('cancelBtn').style.display = 'none';
+        }
+
+        function deleteExpense(id) {
+            if(confirm('Delete this item?')) {
+                if (editingId === id) cancelEdit();
+                expenses = expenses.filter(exp => exp.id !== id);
+                saveData();
+                updateMonthDropdown();
+            }
+        }
+
+        function saveData() {
+            expenses.sort((a, b) => new Date(b.isoDate) - new Date(a.isoDate));
+            localStorage.setItem('myExpenses', JSON.stringify(expenses));
+            render();
+        }
+
+        function getMonthYear(isoDate) {
+            const d = new Date(isoDate);
+            return d.toLocaleString('default', { month: 'long', year: 'numeric' });
+        }
+        
+        function formatDateDisplay(isoDate) {
+             const d = new Date(isoDate);
+             return d.toLocaleDateString();
+        }
+
+        function updateMonthDropdown() {
+            const filterSelect = document.getElementById('monthFilter');
+            const currentSelection = filterSelect.value;
+            const uniqueMonths = new Set();
+            expenses.forEach(exp => {
+                uniqueMonths.add(getMonthYear(exp.isoDate));
+            });
+            filterSelect.innerHTML = '<option value="all">All Time</option>';
+            uniqueMonths.forEach(month => {
+                const option = document.createElement('option');
+                option.value = month;
+                option.textContent = month;
+                filterSelect.appendChild(option);
+            });
+            if ([...filterSelect.options].some(o => o.value === currentSelection)) {
+                filterSelect.value = currentSelection;
+            }
+        }
+
+        function render() {
+            const list = document.getElementById('expenseList');
+            const totalDisplay = document.getElementById('totalDisplay');
+            const filterValue = document.getElementById('monthFilter').value;
+            list.innerHTML = '';
+            let total = 0;
+            const filteredExpenses = expenses.filter(exp => {
+                if (filterValue === 'all') return true;
+                return getMonthYear(exp.isoDate) === filterValue;
+            });
+            filteredExpenses.forEach(exp => {
+                total += exp.amount;
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="expense-info">
+                        <strong>${exp.desc}</strong>
+                        <span class="expense-cat">${exp.category} • ${formatDateDisplay(exp.isoDate)}</span>
+                    </div>
+                    <div class="actions">
+                        <strong>RM ${exp.amount.toFixed(2)}</strong>
+                        <button class="list-btn edit-btn" onclick="editExpense(${exp.id})">✎</button>
+                        <button class="list-btn del-btn" onclick="deleteExpense(${exp.id})">X</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+            totalDisplay.textContent = total.toFixed(2);
+        }
+
+        function exportToCSV() {
+            if (expenses.length === 0) { alert("No data to export!"); return; }
+            let csvContent = "Date,Item,Category,Amount\n";
+            expenses.forEach(exp => {
+                let row = `"${formatDateDisplay(exp.isoDate)}","${exp.desc}","${exp.category}","${exp.amount}"`;
+                csvContent += row + "\n";
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            const today = new Date().toISOString().slice(0, 10);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `spending_backup_${today}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

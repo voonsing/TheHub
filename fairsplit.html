@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>FairSplit v12</title>
+    <style>
+        :root { 
+            --primary: #5856d6; 
+            --bg: #f2f2f7; 
+            --card: #ffffff; 
+            --green: #34c759; 
+            --red: #ff3b30; 
+            --whatsapp: #25D366; 
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg); margin: 0; padding: 20px; color: #333;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(40px, env(safe-area-inset-bottom));
+        }
+
+        h1 { text-align: center; font-size: 24px; margin-bottom: 20px; margin-top: 0; grid-column: 1 / -1; }
+        
+        .app-container {
+            display: flex; flex-direction: column; gap: 20px;
+            max-width: 600px; margin: 0 auto;
+        }
+
+        @media (min-width: 768px) {
+            .app-container {
+                display: grid; grid-template-columns: 1fr 1fr;
+                max-width: 1200px; align-items: start;
+            }
+        }
+
+        .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        h2 { font-size: 16px; margin-top: 0; color: #666; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
+
+        input, button, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; margin-bottom: 10px; }
+        .row { display: flex; gap: 10px; }
+        .input-group { width: 50%; }
+        .input-label { font-size: 12px; font-weight: bold; color: #888; margin-bottom: 4px; display: block; }
+
+        button { background-color: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:active { opacity: 0.8; }
+        button.danger { background-color: var(--red); }
+        button.whatsapp { background-color: var(--whatsapp); margin-top: 10px; }
+        button.small { width: auto; padding: 5px 10px; font-size: 12px; margin: 0; }
+        button.ai-btn { background: linear-gradient(135deg, #8E44AD, #3498DB); color: white; border: none; margin-bottom: 15px;}
+
+        #importSection { display: none; background: #f0f8ff; padding: 10px; border-radius: 8px; border: 1px dashed #3498DB; margin-bottom: 15px; }
+        #pasteArea { height: 100px; font-family: monospace; font-size: 12px; white-space: pre; }
+
+        /* ITEM ROWS */
+        .item-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 12px; margin-bottom: 8px; border-radius: 8px;
+            border: 1px solid #eee; background: white; cursor: pointer; user-select: none;
+            transition: all 0.2s;
+        }
+        .item-row.is-assigned {
+            border: 2px solid var(--primary);
+            background-color: #F5F5FF;
+        }
+        .item-left { display: flex; flex-direction: column; width: 65%; pointer-events: none; }
+        .item-assignee { font-size: 11px; color: #666; margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap; }
+        .mini-avatar {
+            width: 18px; height: 18px; border-radius: 50%; background: #eee; color: #333;
+            font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;
+            border: 1px solid white;
+        }
+
+        /* TOP MANAGEMENT CHIPS (With Delete X) */
+        #friendsList { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .friend-chip { 
+            background: #f8f8f8; border: 1px solid #ddd; padding: 6px 12px; 
+            border-radius: 20px; font-size: 14px; display: flex; align-items: center; gap: 8px;
+        }
+        .delete-x {
+            width: 16px; height: 16px; background: rgba(0,0,0,0.1); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer;
+        }
+
+        /* --- NEW INLINE TABS (SCROLLABLE) --- */
+        #inlineTabs {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            /* Hide scrollbar */
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        #inlineTabs::-webkit-scrollbar { display: none; } /* Chrome, Safari, Opera */
+
+        .tab-chip {
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: #f0f0f0;
+            color: #555;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        /* Active State */
+        .tab-chip.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(88, 86, 214, 0.3);
+            transform: scale(1.05);
+        }
+
+        .total-row { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; }
+        .grand-total { font-size: 24px; color: var(--primary); text-align: right; margin-top: 10px; }
+        .split-card { border-bottom: 1px solid #eee; padding: 10px 0; }
+        .split-header { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; }
+        .split-details { font-size: 12px; color: #666; margin-top: 4px; line-height: 1.4; }
+        .instruction-text { font-size: 13px; color: #666; text-align: center; margin-bottom: 15px; font-style: italic;}
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h1>🧾 FairSplit v12</h1>
+
+        <div class="col-left">
+            <div class="card">
+                <h2>1. Add People <button class="small danger" onclick="clearFriends()">Reset</button></h2>
+                <div class="row">
+                    <input type="text" id="friendName" placeholder="Name (e.g. Ali)">
+                    <button onclick="addFriend()" style="width: auto;">Add</button>
+                </div>
+                <div id="friendsList"></div> 
+            </div>
+
+            <div class="card">
+                <h2>Bill Settings</h2>
+                <div class="row">
+                    <div class="input-group">
+                        <label class="input-label">Tax %</label>
+                        <input type="number" id="taxInput" value="6" onchange="refreshAll()">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Service Charge %</label>
+                        <input type="number" id="svcInput" value="10" onchange="refreshAll()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Add Items</h2>
+                <button class="ai-btn" onclick="startAIProcess()">✨ Scan Receipt with Gemini AI</button>
+                
+                <div id="importSection">
+                    <div style="font-size:12px; margin-bottom:5px; font-weight:bold; color:#555;">Paste Gemini text here:</div>
+                    <textarea id="pasteArea" placeholder="Paste list here..."></textarea>
+                    <button class="small" onclick="processPaste()">Import Items</button>
+                    <button class="small danger" onclick="closeImport()">Cancel</button>
+                </div>
+
+                <div class="row">
+                    <input type="text" id="itemName" placeholder="Item (e.g. Burger)">
+                    <input type="number" id="itemPrice" placeholder="Price (RM)" inputmode="decimal">
+                </div>
+                <button onclick="addItem()">+ Add Manually</button>
+            </div>
+        </div>
+
+        <div class="col-right">
+            
+            <div class="card">
+                <h2 style="margin-bottom:15px;">2. Tap Items to Assign</h2>
+                
+                <div id="inlineTabs"></div>
+                
+                <div id="instruction" class="instruction-text">Select a person above...</div>
+                
+                <div id="billList"></div>
+                
+                <div style="margin-top: 20px; border-top: 2px solid #eee; padding-top: 10px;">
+                    <div class="total-row"><span>Subtotal:</span> <span id="dispSub">0.00</span></div>
+                    <div class="total-row" style="color:#666; font-size:14px;"><span>+ Tax & Svc:</span> <span id="dispTax">0.00</span></div>
+                    <div class="grand-total">Total: RM <span id="dispTotal">0.00</span></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Final Breakdown</h2>
+                <div id="finalSplitList"></div>
+                <button class="whatsapp" onclick="copyForWhatsApp()">📋 Copy for WhatsApp</button>
+            </div>
+
+            <button class="danger" onclick="newBill()">🗑 Start New Bill (Keep Friends)</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        let items = JSON.parse(localStorage.getItem('fs_items')) || [];
+        let friends = JSON.parse(localStorage.getItem('fs_friends')) || [];
+        let activeFriend = null; 
+        
+        document.getElementById('taxInput').value = localStorage.getItem('fs_tax') || 6;
+        document.getElementById('svcInput').value = localStorage.getItem('fs_svc') || 10;
+
+        // Initial Load
+        renderFriends();
+        refreshAll();
+
+        function refreshAll() {
+            renderBill();
+            calculateSplit();
+            saveData();
+            updateInstructionText();
+            renderInlineTabs(); // Updates the tabs
+        }
+
+        // --- ACTIVE FRIEND LOGIC ---
+        function setActiveFriend(name) {
+            if (activeFriend === name) {
+                activeFriend = null;
+            } else {
+                activeFriend = name;
+            }
+            refreshAll();
+        }
+
+        function updateInstructionText() {
+            const el = document.getElementById('instruction');
+            if (activeFriend) {
+                el.innerHTML = `Assigning items to <b style="color:var(--primary)">${activeFriend}</b>...`;
+                el.style.color = "var(--primary)";
+            } else {
+                el.innerHTML = "👇 Tap a name above to start assigning";
+                el.style.color = "#999";
+            }
+        }
+
+        // --- CORE ITEM LOGIC ---
+        function addItem() {
+            const name = document.getElementById('itemName').value;
+            const price = parseFloat(document.getElementById('itemPrice').value);
+            if(!name || isNaN(price)) { alert("Enter item and price"); return; }
+            items.push({ id: Date.now(), name: name, price: price, assignedTo: [] });
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            refreshAll();
+        }
+
+        function toggleItemAssignment(itemId) {
+            if (!activeFriend) {
+                alert("Please select a person from the tabs above first!");
+                return;
+            }
+
+            const item = items.find(i => i.id === itemId);
+            if (!item) return;
+
+            // Toggle Logic
+            if (item.assignedTo.includes(activeFriend)) {
+                item.assignedTo = item.assignedTo.filter(f => f !== activeFriend);
+            } else {
+                item.assignedTo.push(activeFriend);
+            }
+            refreshAll();
+        }
+
+        function deleteItem(id, event) {
+            event.stopPropagation();
+            if(confirm("Delete item?")) {
+                items = items.filter(i => i.id !== id);
+                refreshAll();
+            }
+        }
+
+        // --- FRIEND MANAGEMENT ---
+        function addFriend() {
+            const nameInput = document.getElementById('friendName');
+            const name = nameInput.value.trim();
+            if(name && !friends.includes(name)) {
+                friends.push(name);
+                nameInput.value = '';
+                setActiveFriend(name);
+            }
+            renderFriends(); // Update top list
+        }
+
+        function removeFriend(name) {
+            if(confirm(`Remove ${name}?`)) {
+                friends = friends.filter(f => f !== name);
+                items.forEach(item => item.assignedTo = item.assignedTo.filter(f => f !== name));
+                if (activeFriend === name) activeFriend = null;
+                renderFriends(); refreshAll();
+            }
+        }
+
+        // --- RENDERING ---
+        
+        // 1. Top List (Management - Has Delete Button)
+        function renderFriends() {
+            const div = document.getElementById('friendsList');
+            div.innerHTML = friends.map(f => `
+                <div class="friend-chip">
+                    <span>${f}</span>
+                    <span class="delete-x" onclick="removeFriend('${f}')">✕</span>
+                </div>
+            `).join('');
+        }
+
+        // 2. Inline Tabs (Selection - No Delete Button)
+        function renderInlineTabs() {
+            const container = document.getElementById('inlineTabs');
+            
+            if (friends.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'flex';
+
+            container.innerHTML = friends.map(f => {
+                const isActive = (f === activeFriend) ? 'active' : '';
+                return `<div class="tab-chip ${isActive}" onclick="setActiveFriend('${f}')">${f}</div>`;
+            }).join('');
+        }
+
+        function renderBill() {
+            const list = document.getElementById('billList');
+            list.innerHTML = '';
+            
+            items.forEach(item => {
+                const isAssignedToActive = activeFriend && item.assignedTo.includes(activeFriend);
+                const activeClass = isAssignedToActive ? 'is-assigned' : '';
+                
+                const avatars = item.assignedTo.map(p => 
+                    `<div class="mini-avatar">${p.charAt(0)}</div>`
+                ).join('');
+
+                const div = document.createElement('div');
+                div.className = `item-row ${activeClass}`;
+                div.onclick = () => toggleItemAssignment(item.id);
+                
+                div.innerHTML = `
+                    <div class="item-left">
+                        <strong>${item.name}</strong>
+                        <div class="item-assignee">
+                            ${avatars.length ? avatars : '<span style="color:#ccc; font-style:italic;">No one</span>'}
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-weight:bold;">${formatMoney(item.price).replace('RM ','')}</div>
+                        <button class="small danger" style="margin-top:5px; padding:2px 8px;" onclick="deleteItem(${item.id}, event)">X</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+            calculateTotals();
+        }
+
+        // --- CALCULATIONS ---
+        function calculateSplit() {
+            const taxP = parseFloat(document.getElementById('taxInput').value) || 0;
+            const svcP = parseFloat(document.getElementById('svcInput').value) || 0;
+            const multiplier = 1 + (taxP + svcP) / 100;
+            let friendData = {};
+            friends.forEach(f => friendData[f] = { total: 0, items: [] });
+
+            items.forEach(item => {
+                if(item.assignedTo.length > 0) {
+                    const splitPrice = item.price / item.assignedTo.length;
+                    const finalItemCost = splitPrice * multiplier; 
+                    item.assignedTo.forEach(person => {
+                        if(friendData[person]) {
+                            friendData[person].total += finalItemCost;
+                            let detail = item.name;
+                            if (item.assignedTo.length > 1) detail += ` (1/${item.assignedTo.length})`;
+                            friendData[person].items.push(detail);
+                        }
+                    });
+                }
+            });
+
+            const div = document.getElementById('finalSplitList');
+            div.innerHTML = '';
+            let hasData = false;
+            for (const [name, data] of Object.entries(friendData)) {
+                if (data.total > 0) {
+                    hasData = true;
+                    div.innerHTML += `
+                        <div class="split-card">
+                            <div class="split-header"><span>${name}</span><span style="color:var(--primary)">${formatMoney(data.total)}</span></div>
+                            <div class="split-details">${data.items.join(', ')}</div>
+                        </div>
+                    `;
+                }
+            }
+            if(!hasData) div.innerHTML = "<div style='color:#999; text-align:center; padding:10px;'>Add items and assign friends to see calculations here.</div>";
+        }
+
+        function calculateTotals() {
+            const subtotal = items.reduce((sum, i) => sum + i.price, 0);
+            const taxP = parseFloat(document.getElementById('taxInput').value) || 0;
+            const svcP = parseFloat(document.getElementById('svcInput').value) || 0;
+            const taxAmt = subtotal * (taxP / 100);
+            const svcAmt = subtotal * (svcP / 100);
+            document.getElementById('dispSub').textContent = subtotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('dispTax').textContent = (taxAmt + svcAmt).toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('dispTotal').textContent = (subtotal + taxAmt + svcAmt).toLocaleString('en-US', {minimumFractionDigits: 2});
+        }
+
+        // --- UTILS ---
+        function formatMoney(num) { return "RM " + num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+
+        function saveData() {
+            localStorage.setItem('fs_items', JSON.stringify(items));
+            localStorage.setItem('fs_friends', JSON.stringify(friends));
+            localStorage.setItem('fs_tax', document.getElementById('taxInput').value);
+            localStorage.setItem('fs_svc', document.getElementById('svcInput').value);
+        }
+
+        function startAIProcess() {
+            const magicPrompt = `Extract items and prices from this receipt.\nRules:\n1. Ignore tax/total lines.\n2. Format STRICTLY as: ItemName|Price\n3. Example:\nBurger|25.50`;
+            navigator.clipboard.writeText(magicPrompt).then(() => {
+                alert("Step 1: Copied instructions!\nStep 2: Paste into Gemini & upload image.\nStep 3: Copy the list and paste it here.");
+                window.open("https://gemini.google.com/app", "_blank");
+                document.getElementById('importSection').style.display = 'block';
+            });
+        }
+        function closeImport() {
+            document.getElementById('importSection').style.display = 'none';
+            document.getElementById('pasteArea').value = '';
+        }
+        function processPaste() {
+            const text = document.getElementById('pasteArea').value;
+            const regex = /(.+?)\|([0-9,.]+)/g;
+            let match, count = 0;
+            while ((match = regex.exec(text)) !== null) {
+                let name = match[1].trim().replace(/\n/g, ' ').replace(/\*/g, ''); 
+                let price = parseFloat(match[2].trim().replace(/,/g, ''));
+                if (name && !isNaN(price)) {
+                    items.push({ id: Date.now() + Math.random(), name: name, price: price, assignedTo: [] });
+                    count++;
+                }
+            }
+            if (count > 0) { alert(`Imported ${count} items!`); refreshAll(); closeImport(); } 
+            else { alert("Format not found. Use: Item|Price"); }
+        }
+
+        function copyForWhatsApp() {
+            const taxP = document.getElementById('taxInput').value;
+            const svcP = document.getElementById('svcInput').value;
+            const multiplier = 1 + (parseFloat(taxP)+parseFloat(svcP))/100;
+            let friendTotals = {};
+            friends.forEach(f => friendTotals[f] = 0);
+            items.forEach(item => {
+                if(item.assignedTo.length > 0) {
+                    const cost = (item.price/item.assignedTo.length) * multiplier;
+                    item.assignedTo.forEach(p => { if(friendTotals[p]!==undefined) friendTotals[p]+=cost; });
+                }
+            });
+            let text = `🧾 *FairSplit Bill*\n------------------\n`;
+            let grandTotal = 0;
+            for (const [name, total] of Object.entries(friendTotals)) {
+                if (total > 0) {
+                    text += `${name}: ${formatMoney(total)}\n`;
+                    grandTotal += total;
+                }
+            }
+            text += `------------------\n*Total:* ${formatMoney(grandTotal)}\n_(Tax ${taxP}% | Svc ${svcP}%)_`;
+            navigator.clipboard.writeText(text).then(() => { alert("Copied!"); });
+        }
+
+        function newBill() { if(confirm("Start new bill?")) { items = []; refreshAll(); } }
+        function clearFriends() { if(confirm("Remove all friends?")) { friends = []; items.forEach(i => i.assignedTo=[]); renderFriends(); refreshAll(); } }
+    </script>
+</body>
+</html>
