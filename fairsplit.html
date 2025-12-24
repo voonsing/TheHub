@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>FairSplit v13</title>
+    <title>FairSplit v14</title>
     <link rel="manifest" href="manifest.json">
     <style>
         :root { 
@@ -38,7 +38,11 @@
         button.danger { background-color: var(--red); }
         button.whatsapp { background-color: var(--whatsapp); margin-top: 10px; }
         button.small { width: auto; padding: 5px 10px; font-size: 12px; margin: 0; }
-        button.ai-btn { background: linear-gradient(135deg, #8E44AD, #3498DB); color: white; border: none; margin-bottom: 15px;}
+        
+        /* AI BUTTONS */
+        button.ai-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; margin-bottom: 15px; }
+        .ai-choice-btn { margin-bottom: 8px; font-size: 14px; text-align: left; padding: 12px 15px; display: flex; align-items: center; gap: 10px; background: #f8f9fa; color: #333; border: 1px solid #ddd; }
+        .ai-choice-btn:active { background: #eee; }
 
         #importSection { display: none; background: #f0f8ff; padding: 10px; border-radius: 8px; border: 1px dashed #3498DB; margin-bottom: 15px; }
         #pasteArea { height: 100px; font-family: monospace; font-size: 12px; white-space: pre; }
@@ -113,11 +117,11 @@
 
             <div class="card">
                 <h2>Add Items</h2>
-                <button class="ai-btn" onclick="startAIProcess()">✨ Scan Receipt with Gemini AI</button>
+                <button class="ai-btn" onclick="openAIModal()">✨ Scan Receipt with AI</button>
                 
                 <div id="importSection">
-                    <div style="font-size:12px; margin-bottom:5px; font-weight:bold; color:#555;">Paste Gemini text here:</div>
-                    <textarea id="pasteArea" placeholder="Paste list here..."></textarea>
+                    <div style="font-size:12px; margin-bottom:5px; font-weight:bold; color:#555;">Paste text from AI here:</div>
+                    <textarea id="pasteArea" placeholder="Paste the list..."></textarea>
                     <button class="small" onclick="processPaste()">Import Items</button>
                     <button class="small danger" onclick="closeImport()">Cancel</button>
                 </div>
@@ -154,6 +158,19 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="modalAI">
+        <div class="modal">
+            <h3>Choose Your AI</h3>
+            <p style="color:#666; font-size:13px; margin-bottom:15px;">I have copied the instructions. Open an AI you have installed to scan the receipt.</p>
+            
+            <button class="ai-choice-btn" onclick="openLink('https://chatgpt.com/')">🤖 Open ChatGPT</button>
+            <button class="ai-choice-btn" onclick="openLink('https://gemini.google.com/app')">✨ Open Gemini</button>
+            <button class="ai-choice-btn" onclick="openLink('https://chat.deepseek.com')">🐳 Open DeepSeek</button>
+            
+            <button onclick="closeAIModal()" style="margin-top:15px; background:transparent; color:#666; border:none; width:100%;">Cancel</button>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="modalBackup">
         <div class="modal">
             <h3>Backup & Restore</h3>
@@ -181,21 +198,25 @@
             renderBill(); calculateSplit(); saveData(); updateInstructionText(); renderInlineTabs();
         }
 
-        // --- FIXED AI FUNCTION ---
-        function startAIProcess() {
+        // --- NEW UNIVERSAL AI LOGIC ---
+        function openAIModal() {
             const magicPrompt = `Extract items and prices from this receipt.\nRules:\n1. Ignore tax/total lines.\n2. Format STRICTLY as: ItemName|Price\n3. Example:\nBurger|25.50`;
             
             navigator.clipboard.writeText(magicPrompt).then(() => {
-                alert("Step 1: Instructions Copied!\nStep 2: I will open Gemini now.\nStep 3: Paste instructions there & upload your receipt image.");
-                window.open("https://gemini.google.com/app", "_blank");
-                document.getElementById('importSection').style.display = 'block';
+                document.getElementById('modalAI').style.display = 'flex';
             }).catch(err => {
-                // Fallback if clipboard fails (rare but possible on some restrictive settings)
-                alert("Could not auto-copy instructions. Please copy this manually:\n\n" + magicPrompt);
-                document.getElementById('importSection').style.display = 'block';
+                alert("Please copy this manually:\n\n" + magicPrompt);
+                document.getElementById('modalAI').style.display = 'flex';
             });
         }
 
+        function openLink(url) {
+            window.open(url, "_blank");
+            closeAIModal();
+            document.getElementById('importSection').style.display = 'block';
+        }
+
+        function closeAIModal() { document.getElementById('modalAI').style.display = 'none'; }
         function closeImport() { document.getElementById('importSection').style.display = 'none'; }
         
         function processPaste() { 
@@ -217,7 +238,7 @@
                 closeImport(); 
                 document.getElementById('pasteArea').value = '';
             } else {
-                alert("Could not find any items. Make sure you used the Gemini prompt correctly!");
+                alert("Format invalid. Did you paste the AI output?");
             }
         }
 
