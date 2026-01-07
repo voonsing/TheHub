@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>FairSplit v16</title>
+    <title>FairSplit v17</title>
     <link rel="manifest" href="manifest.json">
     <style>
         :root { 
@@ -104,18 +104,27 @@
             <div class="card">
                 <h2>Bill Settings</h2>
                 <div class="row">
-                    <div class="input-group">
-                        <label class="input-label">Discount (RM)</label>
-                        <input type="number" id="discountInput" value="0" onchange="refreshAll()">
+                    <div class="input-group" style="flex: 2;">
+                        <label class="input-label">Discount Value</label>
+                        <div style="display:flex; gap:5px;">
+                            <input type="number" id="discountInput" value="0" onchange="refreshAll()" style="margin-bottom:0;">
+                            <select id="discountUnit" style="width:70px; margin-bottom:0;" onchange="refreshAll()">
+                                <option value="rm">RM</option>
+                                <option value="pct">%</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label class="input-label">Discount Type</label>
-                        <select id="discountType" onchange="refreshAll()">
-                            <option value="pre">Before Tax (Subtotal)</option>
-                            <option value="post">After Tax (Total)</option>
+                    <div class="input-group" style="flex: 2;">
+                        <label class="input-label">Calc. Method</label>
+                        <select id="discountType" onchange="refreshAll()" style="margin-bottom:0;">
+                            <option value="pre">Before Tax</option>
+                            <option value="post">After Tax</option>
                         </select>
                     </div>
                 </div>
+                
+                <div style="height:10px;"></div>
+
                 <div class="row">
                     <div class="input-group">
                         <label class="input-label">Tax %</label>
@@ -207,6 +216,7 @@
         document.getElementById('svcInput').value = localStorage.getItem('fs_svc') || 10;
         document.getElementById('discountInput').value = localStorage.getItem('fs_disc') || 0;
         document.getElementById('discountType').value = localStorage.getItem('fs_discType') || 'pre';
+        document.getElementById('discountUnit').value = localStorage.getItem('fs_discUnit') || 'rm';
 
         renderFriends(); refreshAll();
 
@@ -248,7 +258,8 @@
                 tax: document.getElementById('taxInput').value,
                 svc: document.getElementById('svcInput').value,
                 disc: document.getElementById('discountInput').value,
-                discType: document.getElementById('discountType').value
+                discType: document.getElementById('discountType').value,
+                discUnit: document.getElementById('discountUnit').value
             };
             const b = new Blob([JSON.stringify(data)], {type: "application/json"});
             const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u;
@@ -267,6 +278,7 @@
                         document.getElementById('svcInput').value = d.svc || 10;
                         document.getElementById('discountInput').value = d.disc || 0;
                         document.getElementById('discountType').value = d.discType || 'pre';
+                        document.getElementById('discountUnit').value = d.discUnit || 'rm';
                         saveData(); refreshAll(); closeModal(); alert("Restored!");
                     } else alert("Invalid file");
                 } catch(err) { alert("Error reading file"); }
@@ -330,7 +342,17 @@
         // --- SMART CALCULATION ENGINE ---
         function getTotals() {
             const subtotal = items.reduce((s, i) => s + i.price, 0);
-            const discount = parseFloat(document.getElementById('discountInput').value) || 0;
+            
+            // 1. Determine Discount Amount in RM
+            const discVal = parseFloat(document.getElementById('discountInput').value) || 0;
+            const discUnit = document.getElementById('discountUnit').value;
+            let discountAmt = 0;
+            if (discUnit === 'pct') {
+                discountAmt = subtotal * (discVal / 100);
+            } else {
+                discountAmt = discVal;
+            }
+
             const type = document.getElementById('discountType').value;
             const taxP = parseFloat(document.getElementById('taxInput').value) || 0;
             const svcP = parseFloat(document.getElementById('svcInput').value) || 0;
@@ -341,17 +363,17 @@
 
             if (type === 'pre') {
                 // Pre-Tax: Subtract discount first, then add tax
-                const taxable = Math.max(0, subtotal - discount);
+                const taxable = Math.max(0, subtotal - discountAmt);
                 taxAmt = taxable * combinedRate;
                 grandTotal = taxable + taxAmt;
             } else {
                 // Post-Tax: Add tax to subtotal, then subtract discount
                 taxAmt = subtotal * combinedRate;
                 const gross = subtotal + taxAmt;
-                grandTotal = Math.max(0, gross - discount);
+                grandTotal = Math.max(0, gross - discountAmt);
             }
 
-            return { subtotal, grandTotal, taxAmt, discount, type };
+            return { subtotal, grandTotal, taxAmt, discountAmt, type };
         }
 
         function calculateSplit() {
@@ -389,13 +411,13 @@
             const details = document.getElementById('calcDetails');
             if(t.type === 'pre') {
                 details.innerHTML = `
-                    <div class="total-row" style="color:var(--green);"><span>- Discount (Pre-Tax):</span> <span>${t.discount.toFixed(2)}</span></div>
+                    <div class="total-row" style="color:var(--green);"><span>- Discount (Pre-Tax):</span> <span>${t.discountAmt.toFixed(2)}</span></div>
                     <div class="total-row" style="color:#666; font-size:14px;"><span>+ Tax & Svc:</span> <span>${t.taxAmt.toFixed(2)}</span></div>
                 `;
             } else {
                 details.innerHTML = `
                     <div class="total-row" style="color:#666; font-size:14px;"><span>+ Tax & Svc:</span> <span>${t.taxAmt.toFixed(2)}</span></div>
-                    <div class="total-row" style="color:var(--green);"><span>- Discount (Post-Tax):</span> <span>${t.discount.toFixed(2)}</span></div>
+                    <div class="total-row" style="color:var(--green);"><span>- Discount (Post-Tax):</span> <span>${t.discountAmt.toFixed(2)}</span></div>
                 `;
             }
         }
@@ -408,12 +430,12 @@
             localStorage.setItem('fs_svc', document.getElementById('svcInput').value);
             localStorage.setItem('fs_disc', document.getElementById('discountInput').value);
             localStorage.setItem('fs_discType', document.getElementById('discountType').value);
+            localStorage.setItem('fs_discUnit', document.getElementById('discountUnit').value);
         }
         function copyForWhatsApp() {
             const t = getTotals();
             if(t.subtotal === 0) return alert("Nothing to split!");
             
-            // Re-calc ratio locally for text generation
             const ratio = t.grandTotal / t.subtotal;
 
             let friendTotals = {}; friends.forEach(f => friendTotals[f] = 0);
